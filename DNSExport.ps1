@@ -24,6 +24,14 @@ $Headers
 
 #This section is to get a list of all zones and their IDs for use in getting the DNS records
 
-$GetZones = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers | ConvertTo-Json -Depth 15
+#Set query to get max page size.
+
+$ZoneUriQuery = $BaseURI+"?per_page=1000"
+
+$GetZones = Invoke-RestMethod -Uri $ZoneUriQuery -Method Get -Headers $Headers | ConvertTo-Json -Depth 5 -AsArray | ConvertFrom-Json -Depth 5 -AsHashtable
 
 #endregion GetZones
+
+$GetZones.result | Out-File D:\Scripts\CloudFlare.txt
+
+$GetZones.result_info

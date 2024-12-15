@@ -38,15 +38,21 @@ $ZoneUriQuery = $BaseURI+"?per_page=1000"
 $GetZones = Invoke-RestMethod -Uri $ZoneUriQuery -Method Get -Headers $Headers
 
 $ZoneIDs = $GetZones.result.id
+$ZoneName = GetZones.result.name
+
+#$ZoneIDs
 
 #endregion GetZones
 
-$GetZones.result
+#$GetZones.result
 
 #region GetDNSRecords
 
-foreach ($ID in $ZoneIDs){
+foreach ($Zone in $ZoneIDs){
 
+    $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
+    $Records.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append
 }
-
 #endregion GetDNSRecords
+
+#$DNSRecords.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment

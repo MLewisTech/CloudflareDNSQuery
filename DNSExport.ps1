@@ -16,22 +16,37 @@ $ApiToken = ""
 
 $Headers = @{"Authorization" = "Bearer $ApiToken"}
 
-$Headers
-
 #endregion GlobalVariables
 
 #region GetZones
 
 #This section is to get a list of all zones and their IDs for use in getting the DNS records
 
+#WIP - Check amount of domains
+
+#$ZoneCount = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+#If ($ZoneCount.result_info.total_count -lt "1000"){
+#}
+
+
 #Set query to get max page size.
 
 $ZoneUriQuery = $BaseURI+"?per_page=1000"
 
-$GetZones = Invoke-RestMethod -Uri $ZoneUriQuery -Method Get -Headers $Headers | ConvertTo-Json -Depth 5 -AsArray | ConvertFrom-Json -Depth 5 -AsHashtable
+#Get the IDs of Zones for use in exporting DNS records:
+
+$GetZones = Invoke-RestMethod -Uri $ZoneUriQuery -Method Get -Headers $Headers
+
+$ZoneIDs = $GetZones.result.id
 
 #endregion GetZones
 
-$GetZones.result | Out-File D:\Scripts\CloudFlare.txt
+$GetZones.result
 
-$GetZones.result_info
+#region GetDNSRecords
+
+foreach ($ID in $ZoneIDs){
+
+}
+
+#endregion GetDNSRecords

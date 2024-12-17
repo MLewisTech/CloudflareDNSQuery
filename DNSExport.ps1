@@ -48,13 +48,42 @@ SOFTWARE.
 
 #######################################################################################`n`n"
 
+Pause
+
+Write-Host "This script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n`n"
+
 #region GetVariables
 
-Write-Host "This script is for getting all DNS records for domains in CloudFlare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n`n"
+#Check if API token is to hand
 $ApiTokenQuery = Read-Host "Do you have an API token? Y/N"
-if (($ApiTokenQuery -eq "y")-or ($ApiTokenQuery -eq "Y") -or ($ApiTokenQuery -like "Yes")){
-   $ApiTokenInput = Read-Host "Please enter your API token here" -AsSecureString
-   $ApiToken = $ApiTokenInput | ConvertFrom-SecureString -AsPlainText
+
+#Check response of $ApiTokenQuery and proceed if yes.
+if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
+
+    #Get API token and store as $ApiTokenInput variable. Text masked to help keep details secure.
+    $ApiTokenInput = Read-Host -prompt "Please enter your API token here" -MaskInput
+
+    #Track times asked for API token.
+    $ApiTokenAskCount = 1
+
+    #If $ApiTokenInput is empty, then loop through 4 more times asking for the token before exiting.
+    if ([string]::IsNullOrEmpty($ApiTokenInput)){
+        while ($ApiTokenAskCount -le 4){
+            $ApiTokenInput = Read-Host -prompt "`n`n[!] No API token has been entered!`n`n Please enter your API token here" -MaskInput 
+            $ApiTokenAskCount++
+
+            #Exit while loop if $ApiTokenInput is no longer empty and proceed with the rest of the script.
+            if (!([string]::IsNullOrEmpty($ApiTokenInput))){break}
+        }
+        if ($ApiTokenAskCount -eq 5){
+            Write-host "No API token has been entered after 5 attempts. Exiting."
+            #Exit
+        }
+    }
+    Write-host ""
+}else{
+    Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+    #Exit
 }
 
 #endregion GetVariables

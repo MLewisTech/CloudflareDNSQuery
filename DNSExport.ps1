@@ -1,3 +1,5 @@
+#region License
+
 #######################################################################################
 
 # This script is licensed under the MIT License
@@ -48,11 +50,13 @@ SOFTWARE.
 
 #######################################################################################`n`n"
 
-Pause
+#endregion License
 
-Write-Host "This script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n`n"
+Write-Host "`nThis script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n`n"
 
 #region GetVariables
+
+#region GetApiTokenInput
 
 #Check if API token is to hand
 $ApiTokenQuery = Read-Host "Do you have an API token? Y/N"
@@ -76,7 +80,7 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
             if (!([string]::IsNullOrEmpty($ApiTokenInput))){break}
         }
         if ($ApiTokenAskCount -eq 5){
-            Write-host "No API token has been entered after 5 attempts. Exiting."
+            Write-host "No API token has been entered after 5 attempts.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n`nGoodbye."
             #Exit
         }
     }
@@ -85,6 +89,17 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
     Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
     #Exit
 }
+
+#endregion GetApiTokenInput
+
+#region GetZonesInput
+
+#To do:
+#Get zones to be a multiple choice 1) Yes 2) No 3) Default (No)
+
+$ZoneQuery = Read-host "By default, this script will get alll records for all domains. Do you want to get the records for specific domains? Y/N"
+
+#endregion GetZonesInput
 
 #endregion GetVariables
 

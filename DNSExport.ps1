@@ -97,7 +97,14 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 #To do:
 #Get zones to be a multiple choice 1) Yes 2) No 3) Default (No)
 
-$ZoneQuery = Read-host "By default, this script will get alll records for all domains. Do you want to get the records for specific domains? Y/N"
+$ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n [Y] Yes [N] No (Default)"
+
+switch ($ZoneQuery){
+    y {$Domains = Read-Host "Please enter a comma separated list of domains";break}
+    ye {$Domains = Read-Host "Please enter a comma separated list of domains";break}
+    yes {$Domains = Read-Host "Please enter a comma separated list of domains";break}
+    Default {Write-Host "All domains"}
+}
 
 #endregion GetZonesInput
 

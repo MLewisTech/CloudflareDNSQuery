@@ -100,10 +100,10 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n [Y] Yes [N] No (Default)"
 
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "Please enter a comma separated list of domains";break}
-    ye {$Domains = Read-Host "Please enter a comma separated list of domains";break}
-    yes {$Domains = Read-Host "Please enter a comma separated list of domains";break}
-    Default {Write-Host "All domains"}
+    y {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
+    ye {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
+    yes {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
+    Default {Write-Host "All records for all domains will be retrieved. Proceeding.";break}
 }
 
 #endregion GetZonesInput

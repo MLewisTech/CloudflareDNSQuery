@@ -94,19 +94,29 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
 #region GetZonesInput
 
-#To do:
-#Get zones to be a multiple choice 1) Yes 2) No 3) Default (No)
-
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n [Y] Yes [N] No (Default)"
 
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
-    ye {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
-    yes {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";break}
-    Default {Write-Host "All records for all domains will be retrieved. Proceeding.";break}
+    y {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    ye {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    yes {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    Default {Write-Host "All records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
 }
 
 #endregion GetZonesInput
+
+#region GetOutputFile
+
+$OutputFileQuery = Read-Host "Do you want to save the output to a specific directory otherwise the output will be the working directory this script is ran from?`n [Y] Yes [N] No (Default)"
+
+switch ($OutputFileQuery){
+    y {$OutputDirectory = Read-Host "Please enter the file path here"}
+    ye {$OutputDirectory = Read-Host "Please enter the file path here"}
+    yes {$OutputDirectory = Read-Host "Please enter the file path here"}
+    Default {Write-host "Outputting to the local working directory which is"}
+}
+
+#endregion GetOutputFile
 
 #endregion GetVariables
 
@@ -120,26 +130,21 @@ $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
 #Never use hardcoded details in scripts.
 #Ideally get the API token from something like Azure Key Vault, Hashicorp Vault, Bitwarden Secrets Manager to ensure that the API token remains safe and secure.
-#If the above isn't an option, then please enter the token below.
-
-#Enter API token here:
-#$ApiToken = $ApiTokenInput
 
 #Headers for auth:
 
-$Headers = @{"Authorization" = "Bearer $ApiToken"}
+$Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
 #endregion GlobalVariables
 
 #region GetZones
 
-#This section is to get a list of all zones and their IDs for use in getting the DNS records
+#WIP
+#Get total amount of zones if getting all domains.
 
-#WIP - Check amount of domains
-
-#$ZoneCount = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
-#If ($ZoneCount.result_info.total_count -lt "1000"){
-#}
+If ($AllDomains -eq $true){
+    $TotalDomains = (Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers).result_info.total_count
+}
 
 
 #Set query to get max page size.

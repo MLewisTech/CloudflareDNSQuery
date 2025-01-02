@@ -1,3 +1,6 @@
+#Start logging
+Start-Transcript -Path "$(Get-Location)\Cloudflare_DNS_Export_Log$(get-date -format "yyyy-MM-ddTHHmmsszzz").txt" -IncludeInvocationHeader -Verbose
+
 #region License
 
 #######################################################################################
@@ -107,13 +110,14 @@ switch ($ZoneQuery){
 
 #region GetOutputFile
 
-$OutputFileQuery = Read-Host "Do you want to save the output to a specific directory otherwise the output will be the working directory this script is ran from?`n [Y] Yes [N] No (Default)"
+Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
+$OutputFileQuery = Read-Host "Do you want to change the output path and file?`n [Y] Yes [No]"
 
 switch ($OutputFileQuery){
-    y {$OutputDirectory = Read-Host "Please enter the file path here"}
-    ye {$OutputDirectory = Read-Host "Please enter the file path here"}
-    yes {$OutputDirectory = Read-Host "Please enter the file path here"}
-    Default {Write-host "Outputting to the local working directory which is"}
+    y {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
+    ye {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
+    yes {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
+    Default {Write-host "Outputting to the local working directory which is $(Get-Location)"}
 }
 
 #endregion GetOutputFile

@@ -114,7 +114,7 @@ Write-host "By default, this script will output a .csv file to the working direc
 $OutputFileQuery = Read-Host "Do you want to change the output directory?`n [Y] Yes [No]"
 
 switch ($OutputFileQuery){
-    y {$OutputDirectory = Read-Host "Please enter the file path here without the file name (if the directory doesn't exist, this script will attempt to create it)"    }
+    y {$OutputDirectory = Read-Host "Please enter the file path here without the file name (if the directory doesn't exist, this script will attempt to create it)"}
     ye {$OutputDirectory = Read-Host "Please enter the file path herew ithout the file name (if the directory doesn't exist, this script will attempt to create it)"}
     yes {$OutputDirectory = Read-Host "Please enter the file path here without the file name(if the directory doesn't exist, this script will attempt to create it)"}
     Default {Write-host "Outputting to the local working directory which is $(Get-Location)"}

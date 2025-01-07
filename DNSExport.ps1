@@ -1,5 +1,5 @@
 #Start logging
-Start-Transcript -Path "$(Get-Location)\Cloudflare_DNS_Export_Log$(get-date -format "yyyy-MM-ddTHHmmsszzz").txt" -IncludeInvocationHeader -Verbose
+$WorkingDir = Get-Location | Select Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append | Out-Null
 
 #region License
 
@@ -111,13 +111,22 @@ switch ($ZoneQuery){
 #region GetOutputFile
 
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
-$OutputFileQuery = Read-Host "Do you want to change the output path and file?`n [Y] Yes [No]"
+$OutputFileQuery = Read-Host "Do you want to change the output directory?`n [Y] Yes [No]"
 
 switch ($OutputFileQuery){
-    y {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
-    ye {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
-    yes {$OutputDirectory = Read-Host "Please enter the file path here (if the directory doesn't exist, this script will attempt to create it)"}
+    y {$OutputDirectory = Read-Host "Please enter the file path here without the file name (if the directory doesn't exist, this script will attempt to create it)"    }
+    ye {$OutputDirectory = Read-Host "Please enter the file path herew ithout the file name (if the directory doesn't exist, this script will attempt to create it)"}
+    yes {$OutputDirectory = Read-Host "Please enter the file path here without the file name(if the directory doesn't exist, this script will attempt to create it)"}
     Default {Write-host "Outputting to the local working directory which is $(Get-Location)"}
+}
+
+if (!(test-path $OutputDirectory)){
+    try {
+        New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+     }
+     catch {
+        mkdir -Path $OutputDirectory -Force | Out-Null
+     }
 }
 
 #endregion GetOutputFile
@@ -132,9 +141,6 @@ switch ($OutputFileQuery){
 
 $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
-#Never use hardcoded details in scripts.
-#Ideally get the API token from something like Azure Key Vault, Hashicorp Vault, Bitwarden Secrets Manager to ensure that the API token remains safe and secure.
-
 #Headers for auth:
 
 $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
@@ -147,7 +153,9 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
-    $TotalDomains = (Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers).result_info.total_count
+    $DomainDataResult = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+    $TotalDomains = $DomainDataResult.result_info.total_count
+    $TotalPages = $DomainDataResult.result_info.total_pages
 }
 
 
@@ -178,3 +186,8 @@ foreach ($Zone in $ZoneIDs){
 #endregion GetDNSRecords
 
 #$DNSRecords.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment
+
+#End logging
+Stop-Transcript
+
+Write-log

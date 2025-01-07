@@ -17,4 +17,4 @@ This will output to a .csv file which can then be manipulated as needed.
 
 <h2>Longer Term:</h2>
 
-1. Add option to get specific domain(s) rather than all domains
+~~1. Add option to get specific domain(s) rather than all domains~~

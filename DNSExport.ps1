@@ -117,7 +117,7 @@ switch ($OutputFileQuery){
     y {$OutputDirectory = Read-Host "Please enter the file path here without the file name (if the directory doesn't exist, this script will attempt to create it)"}
     ye {$OutputDirectory = Read-Host "Please enter the file path herew ithout the file name (if the directory doesn't exist, this script will attempt to create it)"}
     yes {$OutputDirectory = Read-Host "Please enter the file path here without the file name(if the directory doesn't exist, this script will attempt to create it)"}
-    Default {Write-host "Outputting to the local working directory which is $(Get-Location)"}
+    Default {Write-host "Outputting to the local working directory which is $(Get-Location)"; $OutputDirectory = Get-Location | Select Path -ExpandProperty Path}
 }
 
 if (!(test-path $OutputDirectory)){
@@ -153,11 +153,22 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
-    $DomainDataResult = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
-    $TotalDomains = $DomainDataResult.result_info.total_count
-    $TotalPages = $DomainDataResult.result_info.total_pages
+    $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+    If ($ZoneData.result_info.total_count -gt 10){
+        foreach ($page in $TotalPages){
+            $TotalPages = $ZoneData.result_info.total_pages
+            $ZoneIDs = $GetZones.result.id
+            $ZoneName = $GetZones.result.name
+            foreach ($Zone in $ZoneIDs){
+                $Records = "$($BaseURI)/$Zone/dns_records/"
+                $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
+                $Records.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
+            }
+        }
+    }
+    #$TotalDomains = $DomainDataResult.result_info.total_count
+    #$TotalPages = $DomainDataResult.result_info.total_pages
 }
-
 
 #Set query to get max page size.
 

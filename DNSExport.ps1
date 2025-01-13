@@ -111,14 +111,26 @@ switch ($ZoneQuery){
 #region GetOutputFile
 
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
-$OutputFileQuery = Read-Host "Do you want to change the output directory?`n [Y] Yes [No]"
+$OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [No]"
 
 switch ($OutputFileQuery){
-    y {$OutputDirectory = Read-Host "Please enter the file path here without the file name (if the directory doesn't exist, this script will attempt to create it)"}
-    ye {$OutputDirectory = Read-Host "Please enter the file path herew ithout the file name (if the directory doesn't exist, this script will attempt to create it)"}
-    yes {$OutputDirectory = Read-Host "Please enter the file path here without the file name(if the directory doesn't exist, this script will attempt to create it)"}
+    y {$ChangeOutput = $true;break}
+    ye {$ChangeOutput = $true;break} 
+    yes {$ChangeOutput = $true;break} 
     Default {Write-host "Outputting to the local working directory which is $(Get-Location)"; $OutputDirectory = Get-Location | Select Path -ExpandProperty Path}
 }
+
+#File and path checks and handling
+
+if ($ChangeOutput -eq $true){
+    Write-host "To change just the path only, end with a backslash (e.g. C:\CloudFlare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\CloudFlare_DNS_Export\Output)."
+    $DesiredOutputDestination = Read-Host "Please enter the path and file location here"
+    if ($null -eq $DesiredOutputDestination){
+        write-host "No file path/filename has been entered. Using default directory and file name."
+        $OutputDirectory = Get-Location | Select Path -ExpandProperty Path
+    }    
+}
+
 
 if (!(test-path $OutputDirectory)){
     try {
@@ -166,8 +178,6 @@ If ($AllDomains -eq $true){
             }
         }
     }
-    #$TotalDomains = $DomainDataResult.result_info.total_count
-    #$TotalPages = $DomainDataResult.result_info.total_pages
 }
 
 #Set query to get max page size.

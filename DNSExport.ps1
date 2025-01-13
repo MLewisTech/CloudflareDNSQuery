@@ -1,5 +1,9 @@
+#region InitialSetup
+
 #Start logging
 $WorkingDir = Get-Location | Select Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append | Out-Null
+
+#endregion InitalSetup
 
 #region License
 
@@ -110,6 +114,8 @@ switch ($ZoneQuery){
 
 #region GetOutputFile
 
+$WorkingDirectory = Get-Location | Select Path -ExpandProperty Path
+
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
 $OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [No]"
 
@@ -117,7 +123,7 @@ switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host "Outputting to the local working directory which is $(Get-Location)"; $OutputDirectory = Get-Location | Select Path -ExpandProperty Path}
+    Default {Write-host "Outputting to the local working directory which is $($WorkingDirectory)."; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -127,9 +133,37 @@ if ($ChangeOutput -eq $true){
     $DesiredOutputDestination = Read-Host "Please enter the path and file location here"
     if ($null -eq $DesiredOutputDestination){
         write-host "No file path/filename has been entered. Using default directory and file name."
-        $OutputDirectory = Get-Location | Select Path -ExpandProperty Path
-    }    
+        $ChangeOutput = $false
+    } 
 }
+
+if ($ChangeOutput -eq $false){
+    $OutputDirectory = $WorkingDirectory
+}elseif($ChangeOutput -eq $true){
+    if ($DesiredOutputDestination.EndsWith("\")){
+        Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exitsts and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
+        if (!(test-path $DesiredOutputDestination)){
+            try {
+                New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+             }
+             catch {
+                mkdir -Path $DesiredOutputDestination -Force | Out-Null
+             }
+             catch {
+                Write-host "Unable to make $($DesiredOutputDestination). Defaulting to the working directory."
+                $OutputDirectory = $WorkingDirectory
+             }
+             if (Test-Path $DesiredOutputDestination){
+                Write-host "Successfully created $($DesiredOutputDestination). Proceeding."
+                $OutputDirectory = $DesiredOutputDestination
+             }else{
+                Write-Host "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
+                $OutputDirectory = $WorkingDirectory
+             }
+        }
+    }
+}
+
 
 
 if (!(test-path $OutputDirectory)){

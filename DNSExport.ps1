@@ -114,6 +114,8 @@ switch ($ZoneQuery){
 
 #region GetOutputFile
 
+#Get working directory and save as variable for later use.
+
 $WorkingDirectory = Get-Location | Select Path -ExpandProperty Path
 
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
@@ -128,6 +130,10 @@ switch ($OutputFileQuery){
 
 #File and path checks and handling
 
+#Future - May look at moving the below to a function to call from the above switch block for each statement
+
+#Get new file/path.
+
 if ($ChangeOutput -eq $true){
     Write-host "To change just the path only, end with a backslash (e.g. C:\CloudFlare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\CloudFlare_DNS_Export\Output)."
     $DesiredOutputDestination = Read-Host "Please enter the path and file location here"
@@ -137,21 +143,22 @@ if ($ChangeOutput -eq $true){
     } 
 }
 
+#Check if using the working directory or if using new directory.
 if ($ChangeOutput -eq $false){
     $OutputDirectory = $WorkingDirectory
-}elseif($ChangeOutput -eq $true){
+}
+#If using different directory, then check to see if $DesiredOutputDestination is path only or path and file.
+elseif($ChangeOutput -eq $true){
     if ($DesiredOutputDestination.EndsWith("\")){
         Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exitsts and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
+        #Check if directory already exists and attempt to create it not. 
+        #Fall back to using working directory if unable to create new directory.
         if (!(test-path $DesiredOutputDestination)){
             try {
                 New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
              }
              catch {
                 mkdir -Path $DesiredOutputDestination -Force | Out-Null
-             }
-             catch {
-                Write-host "Unable to make $($DesiredOutputDestination). Defaulting to the working directory."
-                $OutputDirectory = $WorkingDirectory
              }
              if (Test-Path $DesiredOutputDestination){
                 Write-host "Successfully created $($DesiredOutputDestination). Proceeding."
@@ -160,6 +167,16 @@ if ($ChangeOutput -eq $false){
                 Write-Host "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
                 $OutputDirectory = $WorkingDirectory
              }
+        }else{
+            Write-host "$($DesiredOutputDestination) already exists. Proceeding."
+            $OutputDirectory = $DesiredOutputDestination
+        }
+    }
+    #If $DesiredOutputDestination doesn't end with a "\", then assume file. 
+    else{
+        #Check if file ends in an extension or if it is just a file name.
+        if (!($DesiredOutputDestination.extension)){
+            
         }
     }
 }

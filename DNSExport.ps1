@@ -116,8 +116,6 @@ switch ($ZoneQuery){
 
 #Get working directory and save as variable for later use.
 
-$WorkingDirectory = Get-Location | Select Path -ExpandProperty Path
-
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
 $OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [No]"
 
@@ -125,7 +123,7 @@ switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host "Outputting to the local working directory which is $($WorkingDirectory)."; $ChangeOutput = $false;break}
+    Default {Write-host "Outputting to the local working directory which is $($WorkingDir)."; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -145,10 +143,10 @@ if ($ChangeOutput -eq $true){
 
 #Check if using the working directory or if using new directory.
 if ($ChangeOutput -eq $false){
-    $OutputDirectory = $WorkingDirectory
+    $OutputDirectory = $WorkingDir
 }
 #If using different directory, then check to see if $DesiredOutputDestination is path only or path and file.
-elseif($ChangeOutput -eq $true){
+else{
     if ($DesiredOutputDestination.EndsWith("\")){
         Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exitsts and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
         #Check if directory already exists and attempt to create it not. 
@@ -165,7 +163,7 @@ elseif($ChangeOutput -eq $true){
                 $OutputDirectory = $DesiredOutputDestination
              }else{
                 Write-Host "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
-                $OutputDirectory = $WorkingDirectory
+                $OutputDirectory = $WorkingDir
              }
         }else{
             Write-host "$($DesiredOutputDestination) already exists. Proceeding."
@@ -175,21 +173,15 @@ elseif($ChangeOutput -eq $true){
     #If $DesiredOutputDestination doesn't end with a "\", then assume file. 
     else{
         #Check if file ends in an extension or if it is just a file name.
+        #If just a file name, then add ".csv" as the extension.
         if (!($DesiredOutputDestination.extension)){
-            
+            $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)+".csv"
+            $OutputDirectory = (Split-Path $DesiredOutputDestination -Parent)
+        }else{
+            $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)
+            $OutputDirectory = (Split-Path $DesiredOutputDestination -Parent)
         }
     }
-}
-
-
-
-if (!(test-path $OutputDirectory)){
-    try {
-        New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
-     }
-     catch {
-        mkdir -Path $OutputDirectory -Force | Out-Null
-     }
 }
 
 #endregion GetOutputFile

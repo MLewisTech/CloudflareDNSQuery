@@ -188,7 +188,7 @@ else{
 
 #endregion GetVariables
 
-#region GlobalVariables
+#region APIGlobalVariables
 
 #This section is for declaring all the variables used in the script.
 
@@ -200,11 +200,10 @@ $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
 $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
-#endregion GlobalVariables
+#endregion APIGlobalVariables
 
-#region GetZones
+#region ExportDNSRecords
 
-#WIP
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
@@ -236,7 +235,11 @@ $ZoneName = $GetZones.result.name
 
 #$ZoneIDs
 
-#endregion GetZones
+#endregion ExportDNSRecords
+
+
+
+#######################################################################################################################################################################################################################
 
 #$GetZones.result
 
@@ -253,5 +256,3 @@ foreach ($Zone in $ZoneIDs){
 
 #End logging
 Stop-Transcript
-
-Write-log

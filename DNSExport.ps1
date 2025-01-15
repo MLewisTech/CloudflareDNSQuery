@@ -1,7 +1,7 @@
 #region InitialSetup
 
 #Start logging
-$WorkingDir = Get-Location | Select Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append | Out-Null
+$WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append | Out-Null
 
 #endregion InitalSetup
 
@@ -114,6 +114,11 @@ switch ($ZoneQuery){
 
 #region GetOutputFile
 
+#File output defaults:
+
+$OutputFile = "Cloudflare_DNS_Export_"+(Get-Date -Format "yyyy-MM-ddTHHmm")+".csv"
+$OutputDirectory = $WorkingDir
+
 #Get working directory and save as variable for later use.
 
 Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
@@ -123,7 +128,7 @@ switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host "Outputting to the local working directory which is $($WorkingDir)."; $ChangeOutput = $false;break}
+    Default {Write-host "No option selected or invalid option entered. Setting default directory to be $($WorkingDir).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -133,7 +138,7 @@ switch ($OutputFileQuery){
 #Get new file/path.
 
 if ($ChangeOutput -eq $true){
-    Write-host "To change just the path only, end with a backslash (e.g. C:\CloudFlare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\CloudFlare_DNS_Export\Output)."
+    Write-host "To change just the path only, end with a backslash (e.g. C:\Cloudflare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\Cloudflare_DNS_Export\Output)."
     $DesiredOutputDestination = Read-Host "Please enter the path and file location here"
     if ($null -eq $DesiredOutputDestination){
         write-host "No file path/filename has been entered. Using default directory and file name."
@@ -142,82 +147,90 @@ if ($ChangeOutput -eq $true){
 }
 
 #Check if using the working directory or if using new directory.
-if ($ChangeOutput -eq $false){
-    $OutputDirectory = $WorkingDir
-}
-#If using different directory, then check to see if $DesiredOutputDestination is path only or path and file.
-else{
-    if ($DesiredOutputDestination.EndsWith("\")){
-        Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exitsts and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
-        #Check if directory already exists and attempt to create it not. 
-        #Fall back to using working directory if unable to create new directory.
-        if (!(test-path $DesiredOutputDestination)){
-            try {
-                New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
-             }
-             catch {
-                mkdir -Path $DesiredOutputDestination -Force | Out-Null
-             }
-             if (Test-Path $DesiredOutputDestination){
-                Write-host "Successfully created $($DesiredOutputDestination). Proceeding."
-                $OutputDirectory = $DesiredOutputDestination
-             }else{
-                Write-Host "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
-                $OutputDirectory = $WorkingDir
-             }
-        }else{
-            Write-host "$($DesiredOutputDestination) already exists. Proceeding."
-            $OutputDirectory = $DesiredOutputDestination
-        }
+try{
+    if ($ChangeOutput -eq $false){
+        $OutputDirectory = $WorkingDir
+        $OutputFile = $DefaultOutputFile
     }
-    #If $DesiredOutputDestination doesn't end with a "\", then assume file. 
+    #If using different directory, then check to see if $DesiredOutputDestination is path only or path and file.
     else{
-        #Check if file ends in an extension or if it is just a file name.
-        #If just a file name, then add ".csv" as the extension.
-        if (!($DesiredOutputDestination.extension)){
-            $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)+".csv"
-            $OutputDirectoryCheck = (Split-Path $DesiredOutputDestination -Parent)
-            if (!(Test-Path $OutputDirectoryCheck)){
+        if ($DesiredOutputDestination.EndsWith("\")){
+            Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exists and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
+            #Check if directory already exists and attempt to create it not. 
+            #Fall back to using working directory if unable to create new directory.
+            if (!(test-path $DesiredOutputDestination)){
                 try {
                     New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
-                 }
-                 catch {
+                }
+                catch {
                     mkdir -Path $DesiredOutputDestination -Force | Out-Null
-                 }
-                 if (Test-Path $OutputDirectoryCheck){
-                    Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
-                    $OutputDirectory = $OutputDirectoryCheck
-                 }else{
-                    Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
+                }
+                if (Test-Path $DesiredOutputDestination){
+                    Write-host "Successfully created $($DesiredOutputDestination). Proceeding."
+                    $OutputDirectory = $DesiredOutputDestination
+                }else{
+                    Write-Host "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
                     $OutputDirectory = $WorkingDir
-                 }
+                }
             }else{
-                Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
-                $OutputDirectory = $OutputDirectoryCheck
-            }        
-        }else{
-            $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)
-            if (!(Test-Path $OutputDirectoryCheck)){
-                try {
-                    New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
-                 }
-                 catch {
-                    mkdir -Path $DesiredOutputDestination -Force | Out-Null
-                 }
-                 if (Test-Path $OutputDirectoryCheck){
-                    Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
-                    $OutputDirectory = $OutputDirectoryCheck
-                 }else{
-                    Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
-                    $OutputDirectory = $WorkingDir
-                 }
-            }else{
-                Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
-                $OutputDirectory = $OutputDirectoryCheck
+                Write-host "$($DesiredOutputDestination) already exists. Proceeding."
+                $OutputDirectory = $DesiredOutputDestination
+            }
+        }
+        #If $DesiredOutputDestination doesn't end with a "\", then assume file. 
+        else{
+                #Check if file ends in an extension or if it is just a file name.
+                #If just a file name, then add ".csv" as the extension.
+                $OutputDirectoryCheck = (Split-Path $DesiredOutputDestination -Parent)
+                if (!($DesiredOutputDestination.extension)){
+                    $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)+".csv"
+                    if (!(Test-Path $OutputDirectoryCheck)){
+                        try {
+                            New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+                        }
+                        catch {
+                            mkdir -Path $DesiredOutputDestination -Force | Out-Null
+                        }
+                        if (Test-Path $OutputDirectoryCheck){
+                            Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
+                            $OutputDirectory = $OutputDirectoryCheck
+                        }else{
+                            Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
+                            $OutputDirectory = $WorkingDir
+                        }
+                    }else{
+                        Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
+                        $OutputDirectory = $OutputDirectoryCheck
+                    }        
+                }else{
+                    $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)
+                    if (!(Test-Path $OutputDirectoryCheck)){
+                        try {
+                            New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+                        }
+                        catch {
+                            mkdir -Path $DesiredOutputDestination -Force | Out-Null
+                        }
+                        if (Test-Path $OutputDirectoryCheck){
+                            Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
+                            $OutputDirectory = $OutputDirectoryCheck
+                        }else{
+                            Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
+                            $OutputDirectory = $WorkingDir
+                        }
+                    }else{
+                        Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
+                        $OutputDirectory = $OutputDirectoryCheck
+                    }
+                }    
             }
         }
     }
+catch{
+    Write-Host "Sorry. Something went wrong.`n`nDefaulting output directory and file to $($OutputDirectory)\$($OutputFile)."
 }
+
+$FullOutputPath = $OutputDirectory+"\"+$OutputFile
 
 #endregion GetOutputFile
 
@@ -252,9 +265,10 @@ If ($AllDomains -eq $true){
             $ZoneIDs = $GetZones.result.id
             $ZoneName = $GetZones.result.name
             foreach ($Zone in $ZoneIDs){
+                write-host "Getting DNS records for $($ZoneName)"
                 $Records = "$($BaseURI)/$Zone/dns_records/"
                 $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-                $Records.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
+                $Records.result | Select-Object type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
             }
         }
     }
@@ -286,7 +300,7 @@ $ZoneName = $GetZones.result.name
 foreach ($Zone in $ZoneIDs){
 
     $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-    $Records.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
+    $Records.result | Select-Object type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
 }
 #endregion GetDNSRecords
 

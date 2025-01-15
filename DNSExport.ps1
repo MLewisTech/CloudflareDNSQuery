@@ -176,10 +176,45 @@ else{
         #If just a file name, then add ".csv" as the extension.
         if (!($DesiredOutputDestination.extension)){
             $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)+".csv"
-            $OutputDirectory = (Split-Path $DesiredOutputDestination -Parent)
+            $OutputDirectoryCheck = (Split-Path $DesiredOutputDestination -Parent)
+            if (!(Test-Path $OutputDirectoryCheck)){
+                try {
+                    New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+                 }
+                 catch {
+                    mkdir -Path $DesiredOutputDestination -Force | Out-Null
+                 }
+                 if (Test-Path $OutputDirectoryCheck){
+                    Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
+                    $OutputDirectory = $OutputDirectoryCheck
+                 }else{
+                    Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
+                    $OutputDirectory = $WorkingDir
+                 }
+            }else{
+                Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
+                $OutputDirectory = $OutputDirectoryCheck
+            }        
         }else{
             $OutputFile = (Split-Path $DesiredOutputDestination -Leaf)
-            $OutputDirectory = (Split-Path $DesiredOutputDestination -Parent)
+            if (!(Test-Path $OutputDirectoryCheck)){
+                try {
+                    New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+                 }
+                 catch {
+                    mkdir -Path $DesiredOutputDestination -Force | Out-Null
+                 }
+                 if (Test-Path $OutputDirectoryCheck){
+                    Write-host "Successfully created $($OutputDirectoryCheck). Proceeding."
+                    $OutputDirectory = $OutputDirectoryCheck
+                 }else{
+                    Write-Host "Failed to create $($OutputDirectoryCheck). Defaulting to the working directory."
+                    $OutputDirectory = $WorkingDir
+                 }
+            }else{
+                Write-host "$($OutputDirectoryCheck) already exists. Proceeding."
+                $OutputDirectory = $OutputDirectoryCheck
+            }
         }
     }
 }
@@ -200,6 +235,10 @@ $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
 $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
+#Get Zone Info:
+
+$ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+
 #endregion APIGlobalVariables
 
 #region ExportDNSRecords
@@ -207,7 +246,6 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
-    $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
     If ($ZoneData.result_info.total_count -gt 10){
         foreach ($page in $TotalPages){
             $TotalPages = $ZoneData.result_info.total_pages

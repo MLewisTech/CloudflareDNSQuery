@@ -252,6 +252,10 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
 $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
 
+#Get ZoneIDs
+
+$ZoneIDs = $ZoneData.result.id
+
 #endregion APIGlobalVariables
 
 #region ExportDNSRecords
@@ -259,19 +263,25 @@ $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
-    If ($ZoneData.result_info.total_count -gt 10){
+    If ($ZoneData.result_info.total_count -gt 1000){
+        $TotalPages = $ZoneData.result_info.total_pages
         foreach ($page in $TotalPages){
-            $TotalPages = $ZoneData.result_info.total_pages
-            $ZoneIDs = $GetZones.result.id
-            $ZoneName = $GetZones.result.name
             foreach ($Zone in $ZoneIDs){
-                write-host "Getting DNS records for $($ZoneName)"
                 $Records = "$($BaseURI)/$Zone/dns_records/"
                 $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-                $Records.result | Select-Object type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
+                $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
             }
         }
+    }else{
+        foreach ($Zone in $ZoneIDs){
+            #write-host "Getting DNS records for $($ZoneName)"
+            $Records = "$($BaseURI)/$Zone/dns_records/"
+            $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+        }
     }
+}else{
+
 }
 
 #Set query to get max page size.
@@ -303,8 +313,6 @@ foreach ($Zone in $ZoneIDs){
     $Records.result | Select-Object type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
 }
 #endregion GetDNSRecords
-
-#$DNSRecords.result | Select type,content,priority,proxiable,proxied,ttl,tags,comment
 
 #End logging
 Stop-Transcript

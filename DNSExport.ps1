@@ -248,14 +248,6 @@ $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
 $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
-#Get Zone Info:
-
-$ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
-
-#Get ZoneIDs
-
-$ZoneIDs = $ZoneData.result.id
-
 #endregion APIGlobalVariables
 
 #region ExportDNSRecords
@@ -263,21 +255,26 @@ $ZoneIDs = $ZoneData.result.id
 #Get total amount of zones if getting all domains.
 
 If ($AllDomains -eq $true){
+    $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+    $ZoneIDs = $ZoneData.result.id
     If ($ZoneData.result_info.total_count -gt 1000){
         $TotalPages = $ZoneData.result_info.total_pages
         foreach ($page in $TotalPages){
-            foreach ($Zone in $ZoneIDs){
-                $Records = "$($BaseURI)/$Zone/dns_records/"
-                $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-                $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            foreach ($Id in $ZoneIDs){
+                $ZoneName = $ZoneData.result | where id -eq $Id | Select name -ExpandProperty name
+                Write-host "Getting DNS records for $ZoneName."
+                $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
+                $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
+                $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
             }
         }
     }else{
-        foreach ($Zone in $ZoneIDs){
-            #write-host "Getting DNS records for $($ZoneName)"
-            $Records = "$($BaseURI)/$Zone/dns_records/"
-            $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+        foreach ($Id in $ZoneIDs){
+            $ZoneName = $ZoneData.result | where id -eq $Id | Select name -ExpandProperty name
+            Write-host "Getting DNS records for $ZoneName."
+            $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
+            $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }
     }
 }else{

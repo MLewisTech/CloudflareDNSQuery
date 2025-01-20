@@ -11,7 +11,7 @@ $WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile =
 
 # This script is licensed under the MIT License
 
-#Copyright (c) 2024 gametech001
+#Copyright (c) 2025 gametech001
 
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ $WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile =
 
 write-host "#######################################################################################`n`nMIT License
 
-Copyright (c) 2024 gametech001
+Copyright (c) 2025 gametech001
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the `"Software`"), to deal
@@ -278,38 +278,17 @@ If ($AllDomains -eq $true){
         }
     }
 }else{
-
+    foreach ($Domain in $DomainArray){
+        $DomainQueryURI = $BaseURI+"?name=$Domain"
+        Write-host "Getting DNS records for $($Domain)"
+        $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
+        $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
+        $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
+        $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+    }
 }
-
-#Set query to get max page size.
-
-$ZoneUriQuery = $BaseURI+"?per_page=1000"
-
-#Get the IDs of Zones for use in exporting DNS records:
-
-$GetZones = Invoke-RestMethod -Uri $ZoneUriQuery -Method Get -Headers $Headers
-
-$ZoneIDs = $GetZones.result.id
-$ZoneName = $GetZones.result.name
-
-#$ZoneIDs
 
 #endregion ExportDNSRecords
-
-
-
-#######################################################################################################################################################################################################################
-
-#$GetZones.result
-
-#region GetDNSRecords
-
-foreach ($Zone in $ZoneIDs){
-
-    $Records = Invoke-RestMethod -Uri "$($BaseURI)/$Zone/dns_records/" -Method Get -Headers $Headers
-    $Records.result | Select-Object type,content,priority,proxiable,proxied,ttl,tags,comment | Export-csv D:\Scripts\cloudflare.csv -Append -NoTypeInformation
-}
-#endregion GetDNSRecords
 
 #End logging
 Stop-Transcript

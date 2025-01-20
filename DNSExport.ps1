@@ -1,7 +1,7 @@
 #region InitialSetup
 
 #Start logging
-$WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append | Out-Null
+$WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append -NoClobber | Out-Null
 
 #endregion InitalSetup
 
@@ -291,4 +291,4 @@ If ($AllDomains -eq $true){
 #endregion ExportDNSRecords
 
 #End logging
-Stop-Transcript
+Stop-Transcript | Out-Null

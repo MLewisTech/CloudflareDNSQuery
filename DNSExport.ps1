@@ -104,10 +104,10 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n [Y] Yes [N] No (Default)"
 Write-host ""
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    ye {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    yes {$Domains = Read-Host "Please enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    Default {Write-Host "All records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
+    y {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    Default {Write-Host "`nAll records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
 }
 
 #endregion GetZonesInput
@@ -121,8 +121,8 @@ $OutputDirectory = $WorkingDir
 
 #Get working directory and save as variable for later use.
 
-Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location)."
-$OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [No]"
+Write-host "`nBy default, this script will output a .csv file to the working directory, which is $(Get-location)."
+$OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [N] No (Default)"
 
 switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
@@ -138,7 +138,7 @@ switch ($OutputFileQuery){
 #Get new file/path.
 
 if ($ChangeOutput -eq $true){
-    Write-host "To change just the path only, end with a backslash (e.g. C:\Cloudflare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\Cloudflare_DNS_Export\Output)."
+    Write-host "`nTo change just the path only, end with a backslash (e.g. C:\Cloudflare_DNS_Export\).`nOtherwise the script will assume that the last item is the file name (e.g. C:\Cloudflare_DNS_Export\Output)."
     $DesiredOutputDestination = Read-Host "Please enter the path and file location here"
     if ($null -eq $DesiredOutputDestination){
         write-host "No file path/filename has been entered. Using default directory and file name."

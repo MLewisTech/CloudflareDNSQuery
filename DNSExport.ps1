@@ -1,6 +1,9 @@
 #region InitialSetup
 
 #Start logging
+#$OldVerbosePreference = $VerbosePreference
+#$VerbosePreference = 'Continue'
+
 $WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append -NoClobber | Out-Null
 
 #endregion InitalSetup
@@ -55,18 +58,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-#######################################################################################`n`n"
+#######################################################################################`n"
 
 #endregion License
 
-Write-Host "`nThis script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n`n"
-
+Write-Host "`nThis script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
+Write-host "#######################################################################################`n"
+Pause
+write-host ""
 #region GetVariables
 
 #region GetApiTokenInput
 
 #Check if API token is to hand
-$ApiTokenQuery = Read-Host "Do you have an API token? Y/N"
+$ApiTokenQuery = Read-Host "Do you have an API token? [Y] Yes [N] No"
 
 #Check response of $ApiTokenQuery and proceed if yes.
 if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
@@ -79,15 +84,16 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
     #If $ApiTokenInput is empty, then loop through 4 more times asking for the token before exiting.
     if ([string]::IsNullOrEmpty($ApiTokenInput)){
-        while ($ApiTokenAskCount -le 4){
-            $ApiTokenInput = Read-Host -prompt "`n`n[!] No API token has been entered!`n`n Please enter your API token here" -MaskInput 
+        while ($ApiTokenAskCount -le 99){
+            Write-host -ForegroundColor Red "`n`n[!] No API token has been entered!`nPlease try again.`n`n"
+            $ApiTokenInput = Read-Host -prompt "Please enter your API token here" -MaskInput 
             $ApiTokenAskCount++
 
             #Exit while loop if $ApiTokenInput is no longer empty and proceed with the rest of the script.
             if (!([string]::IsNullOrEmpty($ApiTokenInput))){break}
         }
-        if ($ApiTokenAskCount -eq 5){
-            Write-host "No API token has been entered after 5 attempts.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n`nGoodbye."
+        if ($ApiTokenAskCount -eq 100){
+            Write-host "`n`nNo API token has been entered after 100 attempts.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n`nGoodbye."
             #Exit
         }
     }
@@ -101,13 +107,13 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
 #region GetZonesInput
 
-$ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n [Y] Yes [N] No (Default)"
+$ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n[Y] Yes [N] No (Default)"
 Write-host ""
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    Default {Write-Host "`nAll records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
+    y {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    Default {Write-Host "`nAll records for all domains will be retrieved. Proceeding.`n";$AllDomains = $true;break}
 }
 
 #endregion GetZonesInput
@@ -121,14 +127,14 @@ $OutputDirectory = $WorkingDir
 
 #Get working directory and save as variable for later use.
 
-Write-host "`nBy default, this script will output a .csv file to the working directory, which is $(Get-location)."
-$OutputFileQuery = Read-Host "Do you want to change the directory or file name (if the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location)?`n`n [Y] Yes [N] No (Default)"
+Write-host "By default, this script will output a .csv file to the working directory, which is $(Get-location).`n"
+$OutputFileQuery = Read-Host "Do you want to change the directory or file name? If the directory doesn't exist, then this script will attempt to create it otherwise, it will fall back to the working location?`n[Y] Yes [N] No (Default)"
 
 switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host "No option selected or invalid option entered. Setting default directory to be $($WorkingDir).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
+    Default {Write-host "`nNo option selected or invalid option entered.`nSetting default directory to be $($WorkingDir).`nSetting default output file name to be $($DefaultOutputFile).`n`n"; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -253,6 +259,8 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 #region ExportDNSRecords
 
 #Get total amount of zones if getting all domains.
+
+Write-host "`nStarting export of DNS records.`n"
 
 If ($AllDomains -eq $true){
     $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers

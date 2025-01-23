@@ -116,7 +116,7 @@ switch ($ZoneQuery){
 
 #File output defaults:
 
-$OutputFile = "Cloudflare_DNS_Export_"+(Get-Date -Format "yyyy-MM-ddTHHmm")+".csv"
+$DefaultOutputFile = "Cloudflare_DNS_Export_"+(Get-Date -Format "yyyy-MM-ddTHHmm")+".csv"
 $OutputDirectory = $WorkingDir
 
 #Get working directory and save as variable for later use.

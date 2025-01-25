@@ -77,7 +77,7 @@ $ApiTokenQuery = Read-Host "Do you have an API token? [Y] Yes [N] No"
 if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
     #Get API token and store as $ApiTokenInput variable. Text masked to help keep details secure.
-    $ApiTokenInput = Read-Host -prompt "Please enter your API token here" -MaskInput
+    $ApiTokenInput = Read-Host -prompt "Please enter your API token here" #-MaskInput
 
     #Track times asked for API token.
     $ApiTokenAskCount = 1
@@ -86,7 +86,7 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
     if ([string]::IsNullOrEmpty($ApiTokenInput)){
         while ($ApiTokenAskCount -le 99){
             Write-host -ForegroundColor Red "`n`n[!] No API token has been entered!`nPlease try again.`n`n"
-            $ApiTokenInput = Read-Host -prompt "Please enter your API token here" -MaskInput 
+            $ApiTokenInput = Read-Host -prompt "Please enter your API token here" #-MaskInput 
             $ApiTokenAskCount++
 
             #Exit while loop if $ApiTokenInput is no longer empty and proceed with the rest of the script.
@@ -113,7 +113,7 @@ switch ($ZoneQuery){
     y {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
     ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
     yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    Default {Write-Host "`nAll records for all domains will be retrieved. Proceeding.`n";$AllDomains = $true;break}
+    Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n`n";$AllDomains = $true;break}
 }
 
 #endregion GetZonesInput
@@ -134,7 +134,7 @@ switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host "`nNo option selected or invalid option entered.`nSetting default directory to be $($WorkingDir).`nSetting default output file name to be $($DefaultOutputFile).`n`n"; $ChangeOutput = $false;break}
+    Default {Write-host "`nNo option selected or invalid option entered.`n`nSetting default directory to be $($WorkingDir).`n`nSetting default output file name to be $($DefaultOutputFile).`n"; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -260,7 +260,7 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 
 #Get total amount of zones if getting all domains.
 
-Write-host "`nStarting export of DNS records.`n"
+Write-host "Starting export of DNS records.`n"
 
 If ($AllDomains -eq $true){
     $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
@@ -298,5 +298,22 @@ If ($AllDomains -eq $true){
 
 #endregion ExportDNSRecords
 
+#region FinalBits
+
+Write-host "`n`nDNS records have been exported to $($FullOutputPath)."
+$OpenFileNowQuery = Read-Host "`nDo you want to open the file now?`n`n[Y] Yes [N] No (Default)"
+
+switch ($OpenFileNowQuery){
+    y {Invoke-Item -Path $FullOutputPath;break}
+    ye {Invoke-Item -Path $FullOutputPath;break}
+    yes {Invoke-Item -Path $FullOutputPath;break}
+    Default {break}
+}
+
+Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye"
+#Exit
+
 #End logging
 Stop-Transcript | Out-Null
+ 
+#endregion FinalBits

@@ -105,6 +105,8 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
 #endregion GetApiTokenInput
 
+Write-host "#######################################################################################`n"
+
 #region GetZonesInput
 
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n[Y] Yes [N] No (Default)"
@@ -117,6 +119,8 @@ switch ($ZoneQuery){
 }
 
 #endregion GetZonesInput
+
+Write-host "#######################################################################################`n"
 
 #region GetOutputFile
 
@@ -233,12 +237,16 @@ try{
         }
     }
 catch{
-    Write-Host "Sorry. Something went wrong.`n`nDefaulting output directory and file to $($OutputDirectory)\$($OutputFile)."
+    Write-Host "Sorry. Something went wrong.`n`nDefaulting output directory and file to $($OutputDirectory)\$($DefaultOutputFile)."
+    $OutputDirectory = $WorkingDir
+    $OutputFile = $DefaultOutputFile
 }
 
 $FullOutputPath = $OutputDirectory+"\"+$OutputFile
 
 #endregion GetOutputFile
+
+Write-host "#######################################################################################`n"
 
 #endregion GetVariables
 
@@ -310,7 +318,7 @@ switch ($OpenFileNowQuery){
     Default {break}
 }
 
-Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye"
+Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
 #Exit
 
 #End logging

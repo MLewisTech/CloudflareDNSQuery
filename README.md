@@ -10,16 +10,10 @@ This will output to a .csv file which can then be manipulated as needed.
 
 <h2>To do:</h2>
 
-~~1. Figure out API code for getting DNS zone entries~~
-~~2. Create code to loop through each one and output to spreadsheet~~
-    ~~1. Work out if better to output to a single spreadhseet or output to multiple spreadsheets.~~
-        ~~1. If using a single spreadsheet, then put each domain on a separate tab? - If doing, then needs more investigation on how to do.~~
-3. Complete PowerShell 
-    1. Complete formatting
-4. Convert to .ps1m module 
-5. Update Readme
-6. Sort issues
-7. Make content publically available in GitHub
+1. Convert to .ps1m module 
+2. Update Readme
+3. Sort issues
+4. Make content publically available in GitHub
 
 ~~<h2>Longer Term:</h2>~~
 

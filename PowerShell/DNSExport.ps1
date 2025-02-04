@@ -299,15 +299,21 @@ If ($AllDomains -eq $true){
         }
     }
 }else{
+    $ListOfTLDs = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content
     foreach ($Domain in $DomainArray){
-        $DomainQueryURI = $BaseURI+"?name=$Domain"
-        Write-host "Getting DNS records for $($Domain)"
-        $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
-        $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
-        $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-        $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+        if ($Domain.EndsWith(".")){
+            Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
+        }else{
+            $DomainQueryURI = $BaseURI+"?name=$Domain"
+            Write-host "Getting DNS records for $($Domain)"
+            $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
+            $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
+            $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+        }
     }
 }
+
 
 #endregion ExportDNSRecords
 

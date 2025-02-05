@@ -299,12 +299,13 @@ If ($AllDomains -eq $true){
         }
     }
 }else{
-    $ListOfTLDs = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
-    $TLDsWithoutHeaders = $ListOfTLDs[1..$ListOfTLDs.Length]
+    $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
+    $ListOfTLDsWithDot = foreach ($tld in $ListOfTLDsWithHeaders){"."+$tld}
+    $TLDsNoHeaders = ($ListOfTLDsWithDot[1..$ListOfTLDsWithDot.Length]) | Select -SkipLast 1
     foreach ($Domain in $DomainArray){
         if ($Domain.EndsWith(".")){
             Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
-        }elseif{
+        }else{
             $DomainQueryURI = $BaseURI+"?name=$Domain"
             Write-host "Getting DNS records for $($Domain)"
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id

@@ -300,18 +300,19 @@ If ($AllDomains -eq $true){
     }
 }else{
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
-    $ListOfTLDsWithDot = foreach ($tld in $ListOfTLDsWithHeaders){"."+$tld}
-    $TLDsNoHeaders = ($ListOfTLDsWithDot[1..$ListOfTLDsWithDot.Length]) | Select -SkipLast 1
+    $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($Domain in $DomainArray){
         if ($Domain.EndsWith(".")){
             Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
-        }else{
+        }elseif($TLDsNoHeaders -contains ($Domain -split "\.([^.]*)$" | Select-Object -Skip 1 -SkipLast 1)){
             $DomainQueryURI = $BaseURI+"?name=$Domain"
             Write-host "Getting DNS records for $($Domain)"
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+        }else{
+            Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
         }
     }
 }

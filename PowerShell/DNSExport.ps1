@@ -302,17 +302,16 @@ If ($AllDomains -eq $true){
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($Domain in $DomainArray){
-        if ($Domain.EndsWith(".")){
-            Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
-        }elseif($TLDsNoHeaders -contains ($Domain -split "\.([^.]*)$" | Select-Object -Skip 1 -SkipLast 1)){
+        #}elseif($TLDsNoHeaders -contains ($Domain.Split(".") | Select-Object -Last 1)){
+        if(($Domain.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
             $DomainQueryURI = $BaseURI+"?name=$Domain"
-            Write-host "Getting DNS records for $($Domain)"
+            Write-host "Getting DNS records for $($Domain)`n"
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }else{
-            Write-host "$($Domain) is invalid.`n`nSkipping check for domain.`n"
+            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain.`n"
         }
     }
 }
@@ -322,7 +321,7 @@ If ($AllDomains -eq $true){
 
 #region FinalBits
 
-Write-host "`n`nDNS records have been exported to $($FullOutputPath)."
+Write-host "`nDNS records have been exported to $($FullOutputPath)."
 $OpenFileNowQuery = Read-Host "`nDo you want to open the file now?`n`n[Y] Yes [N] No (Default)"
 
 switch ($OpenFileNowQuery){

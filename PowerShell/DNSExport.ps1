@@ -282,7 +282,7 @@ If ($AllDomains -eq $true){
         $TotalPages = $ZoneData.result_info.total_pages
         foreach ($page in $TotalPages){
             foreach ($Id in $ZoneIDs){
-                $ZoneName = $ZoneData.result | where id -eq $Id | Select name -ExpandProperty name
+                $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
                 Write-host "Getting DNS records for $ZoneName."
                 $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
@@ -291,7 +291,7 @@ If ($AllDomains -eq $true){
         }
     }else{
         foreach ($Id in $ZoneIDs){
-            $ZoneName = $ZoneData.result | where id -eq $Id | Select name -ExpandProperty name
+            $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
             Write-host "Getting DNS records for $ZoneName."
             $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers

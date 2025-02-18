@@ -94,13 +94,13 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
         }
         if ($ApiTokenAskCount -eq 100){
             Write-host -ForegroundColor Red "`n`n**[!] No API token has been entered after 100 attempts.**`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n`nGoodbye."
-            #Exit
+            Exit
         }
     }
     Write-host ""
 }else{
     Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
-    #Exit
+    Exit
 }
 
 #endregion GetApiTokenInput
@@ -332,7 +332,7 @@ switch ($OpenFileNowQuery){
 }
 
 Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
-#Exit
+Exit
 
 #End logging
 Stop-Transcript | Out-Null

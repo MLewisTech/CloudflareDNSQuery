@@ -112,15 +112,25 @@ Write-host "####################################################################
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n[Y] Yes [N] No (Default)"
 Write-host ""
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    y {$AllDomains = $false;break}
+    ye {$AllDomains = $false;break}
+    yes {$AllDomains = $false;break}
     Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n`n";$AllDomains = $true;break}
 }
 
 if ($Domains -eq ""){
     Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
     $AllDomains = $true
+}
+
+if ($AllDomains -eq $false){
+    switch ($DomainInputQuery = Read-host "`nDo you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
+        y {}
+        ye {}
+        yes {}
+        Default {"`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    }
+
 }
 
 #endregion GetZonesInput

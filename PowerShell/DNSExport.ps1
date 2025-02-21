@@ -283,19 +283,19 @@ If ($AllDomains -eq $true){
         foreach ($page in $TotalPages){
             foreach ($Id in $ZoneIDs){
                 $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
-                Write-host "Getting DNS records for $ZoneName."
+                Write-host "Getting DNS records for $ZoneName"
                 $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-                $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+                $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
             }
         }
     }else{
         foreach ($Id in $ZoneIDs){
             $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
-            Write-host "Getting DNS records for $ZoneName."
+            Write-host "Getting DNS records for $ZoneName"
             $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }
     }
 }else{
@@ -309,7 +309,7 @@ If ($AllDomains -eq $true){
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }else{
             Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain.`n"
         }

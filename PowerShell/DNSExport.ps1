@@ -142,12 +142,13 @@ if($ImportFromFile -eq $true){
     $ChoosenFile = $FileInputPicker.filename
     try{
         if ($ChoosenFile.EndsWith(".csv")){
-            try{
-                $DomainArray = import-csv -path $ChoosenFile -Delimiter "`n"
-            }
-            catch {
-                $DomainArray = import-csv -path $ChoosenFile -Delimiter ","
-            }
+            #try{
+            #   $DomainArray = import-csv -path $ChoosenFile -Delimiter "`n"
+            #}
+            #catch {
+            #    $DomainArray = import-csv -path $ChoosenFile -Delimiter ","
+            #}
+            $DomainArray = Import-Csv -path $ChoosenFile
             $AllDomains = $false
         }
         if($ChoosenFile.EndsWith(".txt")){

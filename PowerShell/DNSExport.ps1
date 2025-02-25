@@ -125,12 +125,48 @@ if ($Domains -eq ""){
 
 if ($AllDomains -eq $false){
     switch ($DomainInputQuery = Read-host "`nDo you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
-        y {}
-        ye {}
-        yes {}
-        Default {"`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+        y {$ImportFromFile = $true;break}
+        ye {$InportFromFile = $true;break}
+        yes {InportFromFile = $true;break}
+        Default {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
     }
+}
 
+if($ImportFromFile -eq $true){
+    Add-Type -AssemblyName System.Windows.Forms
+    $FileInputPicker = New-Object System.Windows.Forms.OpenFileDialog -Property @{
+        InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
+        Filter = 'Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv'
+    }
+    $null = $FileInputPicker.ShowDialog()
+    $ChoosenFile = $FileInputPicker.filename
+    try{
+        if ($ChoosenFile.EndsWith(".csv")){
+            try{
+                $DomainArray = import-csv -path $ChoosenFile -Delimiter "`n"
+            }
+            catch {
+                $DomainArray = import-csv -path $ChoosenFile -Delimiter ","
+            }
+            $AllDomains = $false
+        }
+        if($ChoosenFile.EndsWith(".txt")){
+            $DomainArray = Get-Content -path $ChoosenFile
+            $AllDomains = $false
+        }
+        Write-host "`nThe input file to be used is $($ChoosenFile)."
+    }
+    catch{
+        Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
+        $Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+        $AllDomains = $false
+        $DomainArray = $Domains.Split(',')
+    }
+}
+
+if ($DomainArray -eq ""){
+    Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
+    $AllDomains = $true
 }
 
 #endregion GetZonesInput
@@ -312,7 +348,6 @@ If ($AllDomains -eq $true){
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($Domain in $DomainArray){
-        #}elseif($TLDsNoHeaders -contains ($Domain.Split(".") | Select-Object -Last 1)){
         if(($Domain.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
             $DomainQueryURI = $BaseURI+"?name=$Domain"
             Write-host "Getting DNS records for $($Domain)`n"

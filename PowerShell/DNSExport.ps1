@@ -112,13 +112,54 @@ Write-host "####################################################################
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n[Y] Yes [N] No (Default)"
 Write-host ""
 switch ($ZoneQuery){
-    y {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    ye {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
-    yes {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    y {$AllDomains = $false;break}
+    ye {$AllDomains = $false;break}
+    yes {$AllDomains = $false;break}
     Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n`n";$AllDomains = $true;break}
 }
 
 if ($Domains -eq ""){
+    Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
+    $AllDomains = $true
+}
+
+if ($AllDomains -eq $false){
+    switch ($DomainInputQuery = Read-host "`nDo you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
+        y {$ImportFromFile = $true;break}
+        ye {$InportFromFile = $true;break}
+        yes {InportFromFile = $true;break}
+        Default {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+    }
+}
+
+if($ImportFromFile -eq $true){
+    Add-Type -AssemblyName System.Windows.Forms
+    $FileInputPicker = New-Object System.Windows.Forms.OpenFileDialog -Property @{
+        InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
+        Filter = 'Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv'
+    }
+    $null = $FileInputPicker.ShowDialog()
+    $ChoosenFile = $FileInputPicker.filename
+    try{
+        if ($ChoosenFile.EndsWith(".csv")){
+            $DomainArray = (Import-Csv -path $ChoosenFile) | Select-Object -ExpandProperty *
+            $AllDomains = $false
+        }
+        if($ChoosenFile.EndsWith(".txt")){
+            $DomainArray = Get-Content -path $ChoosenFile
+            $AllDomains = $false
+        }
+        Write-host "`nThe input file to be used is $($ChoosenFile)."
+    }
+    catch{
+        Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
+        $Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+        $AllDomains = $false
+        $DomainArray = $Domains.Split(',')
+    }
+}
+
+if ($DomainArray -eq ""){
     Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
     $AllDomains = $true
 }
@@ -295,23 +336,22 @@ If ($AllDomains -eq $true){
             Write-host "Getting DNS records for $ZoneName"
             $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }
     }
 }else{
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($Domain in $DomainArray){
-        #}elseif($TLDsNoHeaders -contains ($Domain.Split(".") | Select-Object -Last 1)){
         if(($Domain.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
             $DomainQueryURI = $BaseURI+"?name=$Domain"
-            Write-host "Getting DNS records for $($Domain)`n"
+            Write-host "Getting DNS records for $($Domain)"
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }else{
-            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain.`n"
+            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain."
         }
     }
 }

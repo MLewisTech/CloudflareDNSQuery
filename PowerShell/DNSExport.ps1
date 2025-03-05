@@ -336,7 +336,7 @@ If ($AllDomains -eq $true){
             Write-host "Getting DNS records for $ZoneName"
             $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }
     }
 }else{
@@ -345,13 +345,13 @@ If ($AllDomains -eq $true){
     foreach ($Domain in $DomainArray){
         if(($Domain.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
             $DomainQueryURI = $BaseURI+"?name=$Domain"
-            Write-host "Getting DNS records for $($Domain)`n"
+            Write-host "Getting DNS records for $($Domain)"
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
         }else{
-            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain.`n"
+            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain."
         }
     }
 }

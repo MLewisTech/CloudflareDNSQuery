@@ -115,7 +115,7 @@ switch ($ZoneQuery){
     y {$AllDomains = $false;break}
     ye {$AllDomains = $false;break}
     yes {$AllDomains = $false;break}
-    Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n`n";$AllDomains = $true;break}
+    Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n";$AllDomains = $true;break}
 }
 
 if ($Domains -eq ""){
@@ -184,7 +184,7 @@ switch ($OutputFileQuery){
     y {$ChangeOutput = $true;break}
     ye {$ChangeOutput = $true;break} 
     yes {$ChangeOutput = $true;break} 
-    Default {Write-host  -ForegroundColor Red "`n[!] No option selected or invalid option entered.`n`nSetting default directory to be $($WorkingDir).`n`nSetting default output file name to be $($DefaultOutputFile).`n"; $ChangeOutput = $false;break}
+    Default {Write-host  -ForegroundColor Red "`n[!] No option selected or invalid option entered.`n`nSetting default directory to be $($WorkingDir).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
 }
 
 #File and path checks and handling
@@ -322,21 +322,49 @@ If ($AllDomains -eq $true){
     If ($ZoneData.result_info.total_count -gt 1000){
         $TotalPages = $ZoneData.result_info.total_pages
         foreach ($page in $TotalPages){
-            foreach ($Id in $ZoneIDs){
-                $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
+            foreach ($ID in $ZoneIDs){
+                $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
                 Write-host "Getting DNS records for $ZoneName"
-                $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
+                $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-                $Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+                #$Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+                foreach($Record in $Records.result){
+                    $RecordOutPut = [pscustomobject]@{
+                    Domain = $ZoneName
+                    Name = $Record.name                 
+                    Type = $Record.type
+                    Content = $Record.content
+                    Priority = $Record.priority
+                    Proxiable = $Record.proxiable
+                    Proxied = $Record.proxied
+                    TTL = $Record.ttl
+                    Comment = $Record.comment
+                    }
+                    $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
+                }
             }
         }
     }else{
-        foreach ($Id in $ZoneIDs){
-            $ZoneName = $ZoneData.result | Where-Object id -eq $Id | Select-Object name -ExpandProperty name
+        foreach ($ID in $ZoneIDs){
+            $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
             Write-host "Getting DNS records for $ZoneName"
-            $RecordsURI = "$($BaseURI)$($Id)/dns_records/"
+            $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            foreach($Record in $Records.result){
+                $RecordOutPut = [pscustomobject]@{
+                Domain = $ZoneName
+                Name = $Record.name                 
+                Type = $Record.type
+                Content = $Record.content
+                Priority = $Record.priority
+                Proxiable = $Record.proxiable
+                Proxied = $Record.proxied
+                TTL = $Record.ttl
+                Comment = $Record.comment
+                }
+                $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
+            }
         }
     }
 }else{
@@ -349,7 +377,21 @@ If ($AllDomains -eq $true){
             $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            $Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            foreach($Record in $Records.result){
+                $RecordOutPut = [pscustomobject]@{
+                Domain = $Domain
+                Name = $Record.name                 
+                Type = $Record.type
+                Content = $Record.content
+                Priority = $Record.priority
+                Proxiable = $Record.proxiable
+                Proxied = $Record.proxied
+                TTL = $Record.ttl
+                Comment = $Record.comment
+                }
+                $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
+            }
         }else{
             Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain."
         }
@@ -378,3 +420,4 @@ Exit
 Stop-Transcript | Out-Null
  
 #endregion FinalBits
+

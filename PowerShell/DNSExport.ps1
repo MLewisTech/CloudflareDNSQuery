@@ -329,6 +329,34 @@ If ($AllDomains -eq $true){
                 $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
                 #$Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+                if($Records -eq ""){break}
+                else{
+                    foreach($Record in $Records.result){
+                        $RecordOutPut = [pscustomobject]@{
+                        Domain = $ZoneName
+                        Name = $Record.name                 
+                        Type = $Record.type
+                        Content = $Record.content
+                        Priority = $Record.priority
+                        Proxiable = $Record.proxiable
+                        Proxied = $Record.proxied
+                        TTL = $Record.ttl
+                        Comment = $Record.comment
+                        }
+                        $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
+                    }
+                }
+            }
+        }
+    }else{
+        foreach ($ID in $ZoneIDs){
+            $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
+            Write-host "Getting DNS records for $ZoneName"
+            $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
+            $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
+            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            if($Records -eq ""){break}
+            else{
                 foreach($Record in $Records.result){
                     $RecordOutPut = [pscustomobject]@{
                     Domain = $ZoneName
@@ -345,56 +373,37 @@ If ($AllDomains -eq $true){
                 }
             }
         }
-    }else{
-        foreach ($ID in $ZoneIDs){
-            $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
-            Write-host "Getting DNS records for $ZoneName"
-            $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
-            $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
-            foreach($Record in $Records.result){
-                $RecordOutPut = [pscustomobject]@{
-                Domain = $ZoneName
-                Name = $Record.name                 
-                Type = $Record.type
-                Content = $Record.content
-                Priority = $Record.priority
-                Proxiable = $Record.proxiable
-                Proxied = $Record.proxied
-                TTL = $Record.ttl
-                Comment = $Record.comment
-                }
-                $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
-            }
-        }
     }
 }else{
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
-    foreach ($Domain in $DomainArray){
-        if(($Domain.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
-            $DomainQueryURI = $BaseURI+"?name=$Domain"
-            Write-host "Getting DNS records for $($Domain)"
-            $ZoneID = (Invoke-RestMethod -Uri $DomainQueryURI -Method Get -Headers $Headers).result.id
+    foreach ($ZoneName in $DomainArray){
+        if(($ZoneName.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
+            $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName"
+            Write-host "Getting DNS records for $($ZoneName)"
+            $ZoneID = (Invoke-RestMethod -Uri $ZoneNameQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
-            foreach($Record in $Records.result){
-                $RecordOutPut = [pscustomobject]@{
-                Domain = $Domain
-                Name = $Record.name                 
-                Type = $Record.type
-                Content = $Record.content
-                Priority = $Record.priority
-                Proxiable = $Record.proxiable
-                Proxied = $Record.proxied
-                TTL = $Record.ttl
-                Comment = $Record.comment
+            if($Records -eq ""){break}
+            else{
+                foreach($Record in $Records.result){
+                    $RecordOutPut = [pscustomobject]@{
+                    Domain = $ZoneName
+                    Name = $Record.name                 
+                    Type = $Record.type
+                    Content = $Record.content
+                    Priority = $Record.priority
+                    Proxiable = $Record.proxiable
+                    Proxied = $Record.proxied
+                    TTL = $Record.ttl
+                    Comment = $Record.comment
+                    }
+                    $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
                 }
-                $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
             }
         }else{
-            Write-host -ForegroundColor Red "$($Domain) is invalid. Skipping check for domain."
+            Write-host -ForegroundColor Red "$($ZoneName) is invalid. Skipping check for domain."
         }
     }
 }

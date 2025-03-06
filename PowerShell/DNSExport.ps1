@@ -317,7 +317,8 @@ $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
 Write-host "Starting export of DNS records.`n"
 
 If ($AllDomains -eq $true){
-    $ZoneData = Invoke-RestMethod -Uri $BaseURI -Method Get -Headers $Headers
+    $PageQueryURI = $BaseURI+"?per_page=1000"
+    $ZoneData = Invoke-RestMethod -Uri $PageQueryURI -Method Get -Headers $Headers
     $ZoneIDs = $ZoneData.result.id
     If ($ZoneData.result_info.total_count -gt 1000){
         $TotalPages = $ZoneData.result_info.total_pages

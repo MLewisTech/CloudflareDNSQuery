@@ -325,11 +325,13 @@ If ($AllDomains -eq $true){
         foreach ($page in $TotalPages){
             foreach ($ID in $ZoneIDs){
                 $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
-                Write-host "Getting DNS records for $ZoneName"
+                Write-host "Getting DNS records for $ZoneName.`n"
                 $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
                 #$Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
-                if($Records -eq ""){break}
+                if($Records.result_info.total_count -eq 0){
+                    Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+                }
                 else{
                     foreach($Record in $Records.result){
                         $RecordOutPut = [pscustomobject]@{
@@ -345,17 +347,19 @@ If ($AllDomains -eq $true){
                         }
                         $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
                     }
-                }
+                } 
             }
         }
     }else{
         foreach ($ID in $ZoneIDs){
             $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
-            Write-host "Getting DNS records for $ZoneName"
+            Write-host "Getting DNS records for $ZoneName.`n"
             $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
-            if($Records -eq ""){break}
+            if($Records.result_info.total_count -eq 0){
+                Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+            }
             else{
                 foreach($Record in $Records.result){
                     $RecordOutPut = [pscustomobject]@{
@@ -371,7 +375,7 @@ If ($AllDomains -eq $true){
                     }
                     $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
                 }
-            }
+            } 
         }
     }
 }else{
@@ -379,13 +383,15 @@ If ($AllDomains -eq $true){
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($ZoneName in $DomainArray){
         if(($ZoneName.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
-            $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName"
+            $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName.`n"
             Write-host "Getting DNS records for $($ZoneName)"
             $ZoneID = (Invoke-RestMethod -Uri $ZoneNameQueryURI -Method Get -Headers $Headers).result.id
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
-            if($Records -eq ""){break}
+            if($Records.result_info.total_count -eq 0){
+                Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+            }
             else{
                 foreach($Record in $Records.result){
                     $RecordOutPut = [pscustomobject]@{
@@ -401,7 +407,7 @@ If ($AllDomains -eq $true){
                     }
                     $RecordOutPut | Export-Csv $FullOutputPath -NoTypeInformation -Append
                 }
-            }
+            } 
         }else{
             Write-host -ForegroundColor Red "$($ZoneName) is invalid. Skipping check for domain."
         }

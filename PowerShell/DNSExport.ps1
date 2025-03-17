@@ -8,6 +8,16 @@ $WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile =
 
 #endregion InitalSetup
 
+#region APIGlobalVariables
+
+#This section is for declaring all the variables used in the script.
+
+#Set the Base URI to https://api.cloudflare.com/client/v4/zones/ as this will then be used during the API calls to get the zone ID and then get the associated records
+
+$BaseURI = "https://api.cloudflare.com/client/v4/zones/"
+
+#endregion APIGlobalVariables
+
 #region License
 
 #######################################################################################
@@ -77,30 +87,32 @@ $ApiTokenQuery = Read-Host "Do you have an API token? [Y] Yes [N] No"
 if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
 
     #Get API token and store as $ApiTokenInput variable. Text masked to help keep details secure.
-    $ApiTokenInput = Read-Host -prompt "Please enter your API token here"
+    #$ApiTokenInput = Read-Host -prompt "Please enter your API token here"
 
-    #Track times asked for API token.
-    $ApiTokenAskCount = 1
-
-    #If $ApiTokenInput is empty, then loop through 4 more times asking for the token before exiting.
-    if ([string]::IsNullOrEmpty($ApiTokenInput)){
-        while ($ApiTokenAskCount -le 99){
-            Write-host -ForegroundColor Red "`n`n[!] No API token has been entered!`n`nPlease try again.`n`n"
-            $ApiTokenInput = Read-Host -prompt "Please enter your API token here"
-            $ApiTokenAskCount++
-
-            #Exit while loop if $ApiTokenInput is no longer empty and proceed with the rest of the script.
-            if (!([string]::IsNullOrEmpty($ApiTokenInput))){break}
-        }
-        if ($ApiTokenAskCount -eq 100){
-            Write-host -ForegroundColor Red "`n`n**[!] No API token has been entered after 100 attempts.**`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n`nGoodbye."
-            Exit
+    $ApiTokenInput = $null 
+    while([string]::IsNullOrEmpty($ApiTokenInput)){
+        Write-host "`n#######################################################################################"
+        Write-host -ForegroundColor Yellow "`nPlease note that you'll need the following API permissions to use this script: `n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
+        Write-host "Please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ to create an API token.`n"
+        $ApiTokenInput = Read-Host -prompt "Please enter your API token here" 
+        if (!([string]::IsNullOrEmpty($ApiTokenInput))){
+            Write-host "`nChecking if API token is valid.`n"
+            $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
+            try{
+                $TestHeaders = Invoke-Webrequest -Uri $BaseURI -Method Get -Headers $Headers
+                $StatusCode = $TestHeaders.StatusCode
+            }catch {
+                $StatusCode = $_.Exception.Response.StatusCode.value__
+            }
+            if ($StatusCode -eq "200"){
+                Write-host "API token is valid. Proceeding.`n"
+                break
+            }else{
+                Write-host -ForegroundColor Red "Invalid API token entered. Please try again."
+                $ApiTokenInput = $null
+            }
         }
     }
-    Write-host ""
-}else{
-    Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
-    Exit
 }
 
 #endregion GetApiTokenInput
@@ -295,20 +307,6 @@ $FullOutputPath = $OutputDirectory+"\"+$OutputFile
 Write-host "`n#######################################################################################`n"
 
 #endregion GetVariables
-
-#region APIGlobalVariables
-
-#This section is for declaring all the variables used in the script.
-
-#Set the Base URI to https://api.cloudflare.com/client/v4/zones/ as this will then be used during the API calls to get the zone ID and then get the associated records
-
-$BaseURI = "https://api.cloudflare.com/client/v4/zones/"
-
-#Headers for auth:
-
-$Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
-
-#endregion APIGlobalVariables
 
 #region ExportDNSRecords
 

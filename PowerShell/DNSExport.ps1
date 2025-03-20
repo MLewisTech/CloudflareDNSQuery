@@ -89,8 +89,14 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
     #Get API token and store as $ApiTokenInput variable. Text masked to help keep details secure.
     #$ApiTokenInput = Read-Host -prompt "Please enter your API token here"
 
-    $ApiTokenInput = $null 
+    $ApiTokenInput = $null
+    $ApiCount = 0
+    $TimeStamp = Get-Date
     while([string]::IsNullOrEmpty($ApiTokenInput)){
+        if (($ApiCount -ge 1200)-and ($TimeStamp -lt $TimeStamp.AddMinutes(5))){
+            write-host -ForegroundColor Red "[!] Warning. An incorrect API token has been entered 1200 times within a 5 minute period.`n`nPlease run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/."
+            Exit
+        }
         Write-host "`n#######################################################################################"
         Write-host -ForegroundColor Yellow "`nPlease note that you'll need the following API permissions to use this script: `n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
         Write-host "Please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ to create an API token.`n"
@@ -106,13 +112,18 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
             }
             if ($StatusCode -eq "200"){
                 Write-host "API token is valid. Proceeding.`n"
+                $ApiCount++
                 break
             }else{
                 Write-host -ForegroundColor Red "Invalid API token entered. Please try again."
                 $ApiTokenInput = $null
+                $ApiCount++
             }
         }
     }
+}else{
+    Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
+    Exit
 }
 
 #endregion GetApiTokenInput
@@ -313,20 +324,29 @@ Write-host "`n##################################################################
 #Get total amount of zones if getting all domains.
 
 Write-host "Starting export of DNS records.`n"
+$TimeStamp = Get-Date
 
 If ($AllDomains -eq $true){
     $PageQueryURI = $BaseURI+"?per_page=1000"
     $ZoneData = Invoke-RestMethod -Uri $PageQueryURI -Method Get -Headers $Headers
     $ZoneIDs = $ZoneData.result.id
+    $ApiCount++
     If ($ZoneData.result_info.total_count -gt 1000){
         $TotalPages = $ZoneData.result_info.total_pages
         foreach ($page in $TotalPages){
             foreach ($ID in $ZoneIDs){
+                if (($ApiCount -ge 1190)-and ($TimeStamp -lt $TimeStamp.AddMinutes(5))){
+                    Write-host -ForegroundColor Red "[!] Warning. Approaching Cloudflare API limit of 1200 per 5 minute interval.`n`nSleeping for 5 minutes to ensure that the Cloudflare API limit isn't hit."
+                    Write-host "`n`nScript will automatically resume after 5 minutes."
+                    Start-Sleep -Seconds 300
+                    $ApiCount = 0
+                    $TimeStamp = Get-Date
+                }
                 $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
                 Write-host "Getting DNS records for $ZoneName.`n"
                 $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-                #$Records.result | Select-Object zone_name,name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+                $ApiCount++
                 if($Records.result_info.total_count -eq 0){
                     Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
                 }
@@ -350,11 +370,18 @@ If ($AllDomains -eq $true){
         }
     }else{
         foreach ($ID in $ZoneIDs){
+            if (($ApiCount -ge 1190)-and ($TimeStamp -lt $TimeStamp.AddMinutes(5))){
+                Write-host -ForegroundColor Red "[!] Warning. Approaching Cloudflare API limit of 1200 per 5 minute interval.`n`nSleeping for 5 minutes to ensure that the Cloudflare API limit isn't hit."
+                Write-host "`n`nScript will automatically resume after 5 minutes."
+                Start-Sleep -Seconds 300
+                $ApiCount = 0
+                $TimeStamp = Get-Date
+            }
             $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
             Write-host "Getting DNS records for $ZoneName.`n"
             $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $ApiCount++
             if($Records.result_info.total_count -eq 0){
                 Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
             }
@@ -380,13 +407,21 @@ If ($AllDomains -eq $true){
     $ListOfTLDsWithHeaders = (Invoke-WebRequest -uri "https://data.iana.org/TLD/tlds-alpha-by-domain.txt").Content -split "`n"
     $TLDsNoHeaders = ($ListOfTLDsWithHeaders[1..$ListOfTLDsWithHeaders.Length])
     foreach ($ZoneName in $DomainArray){
+        if (($ApiCount -ge 1190)-and ($TimeStamp -lt $TimeStamp.AddMinutes(5))){
+            Write-host -ForegroundColor Red "[!] Warning. Approaching Cloudflare API limit of 1200 per 5 minute interval.`n`nSleeping for 5 minutes to ensure that the Cloudflare API limit isn't hit."
+            Write-host "`n`nScript will automatically resume after 5 minutes."
+            Start-Sleep -Seconds 300
+            $ApiCount = 0
+            $TimeStamp = Get-Date
+        }
         if(($ZoneName.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){          
             $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName.`n"
             Write-host "Getting DNS records for $($ZoneName)"
             $ZoneID = (Invoke-RestMethod -Uri $ZoneNameQueryURI -Method Get -Headers $Headers).result.id
+            $ApiCount++
             $RecordsURI = "$($BaseURI)$($ZoneID)/dns_records/"
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
-            #$Records.result | Select-Object name,type,content,priority,proxiable,proxied,ttl,comment | Export-csv $FullOutputPath -Append -NoTypeInformation
+            $ApiCount++
             if($Records.result_info.total_count -eq 0){
                 Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
             }
@@ -412,7 +447,6 @@ If ($AllDomains -eq $true){
     }
 }
 
-
 #endregion ExportDNSRecords
 
 #region FinalBits
@@ -434,4 +468,3 @@ Exit
 Stop-Transcript | Out-Null
  
 #endregion FinalBits
-

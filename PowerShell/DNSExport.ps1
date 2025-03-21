@@ -81,10 +81,20 @@ write-host ""
 #region GetApiTokenInput
 
 #Check if API token is to hand
-$ApiTokenQuery = Read-Host "Do you have an API token? [Y] Yes [N] No"
+$ApiTokenQuery = Read-Host "Do you have an API token?`n[Y] Yes [N] No (Default)"
+
+switch ($ApiTokenQuery){
+    y {$ApiTokenPrompt = $true;break}
+    ye {$ApiTokenPrompt = $true;break}
+    yes {$ApiTokenPrompt = $true;break}
+    Default { 
+        Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n"
+        Exit
+    }
+}
 
 #Check response of $ApiTokenQuery and proceed if yes.
-if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
+if ($ApiTokenPrompt -eq $true){
 
     #Get API token and store as $ApiTokenInput variable. Text masked to help keep details secure.
     #$ApiTokenInput = Read-Host -prompt "Please enter your API token here"
@@ -121,10 +131,7 @@ if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
             }
         }
     }
-}else{
-    Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/"
-    Exit
-}
+} 
 
 #endregion GetApiTokenInput
 

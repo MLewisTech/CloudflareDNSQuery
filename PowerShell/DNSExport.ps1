@@ -1,10 +1,6 @@
 #region InitialSetup
 
-#Start logging
-#$OldVerbosePreference = $VerbosePreference
-#$VerbosePreference = 'Continue'
-
-$WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path; $LogFile = $WorkingDir + "\Cloudflare_DNS_Export_Log_" + (get-date -format "yyyy-MM-ddTHHmmss") + ".txt"; Start-Transcript -Path $LogFile -IncludeInvocationHeader -Append -NoClobber | Out-Null
+$WorkingDir = Get-Location | Select-Object Path -ExpandProperty Path
 
 #endregion InitalSetup
 
@@ -470,8 +466,5 @@ switch ($OpenFileNowQuery){
 
 Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
 Exit
-
-#End logging
-Stop-Transcript | Out-Null
  
 #endregion FinalBits

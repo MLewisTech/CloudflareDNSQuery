@@ -1,5 +1,7 @@
 #region InitialSetup
 
+#Set console colours
+
 $CurrentPSBackgroundColour = $Host.UI.RawUI.BackgroundColor
 $CurrentPSForegroundColour = $Host.UI.RawUI.ForegroundColor
 
@@ -128,11 +130,21 @@ if ($Domains -eq ""){
 }
 
 if ($AllDomains -eq $false){
-    switch ($DomainInputQuery = Read-host "`nDo you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
+    switch ($DomainInputQuery = Read-host "Do you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
         y {$ImportFromFile = $true;break}
         ye {$ImportFromFile = $true;break}
         yes {$ImportFromFile = $true;break}
-        Default {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+        Default {
+            $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+            while([string]::IsNullOrEmpty($ManualDomainInput)){
+                Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`nPlease try again."
+                $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+            }
+            if (!([string]::IsNullOrEmpty($ManualDomainInput))){
+                $AllDomains = $false
+                $DomainArray = $ManualDomainInput.Split(',')
+            }
+        }
     }
 }
 
@@ -163,11 +175,6 @@ if($ImportFromFile -eq $true){
         $DomainArray = $Domains.Split(',')
     }
 }
-if ($DomainArray -eq ""){
-    Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
-    $AllDomains = $true
-}
-
 #endregion GetZonesInput
 
 Write-Host -ForegroundColor Green "`n#######################################################################################`n"
@@ -426,7 +433,7 @@ If ($AllDomains -eq $true){
                 }
             } 
         }else{
-            Write-host -ForegroundColor Red "$($ZoneName) is invalid. Skipping check for domain."
+            Write-host -ForegroundColor Red "$($ZoneName) is invalid. Skipping check for domain.`n"
         }
     }
 }
@@ -446,8 +453,12 @@ switch ($OpenFileNowQuery){
 }
 
 Write-host "`nThank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
+
+#Restore console back to original settings
+
 $Host.UI.RawUI.BackgroundColor = $CurrentPSBackgroundColour
 $Host.UI.RawUI.ForegroundColor = $CurrentPSForegroundColour
+
 Exit
 
 #endregion FinalBits

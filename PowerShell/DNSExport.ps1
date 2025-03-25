@@ -66,7 +66,7 @@ switch ($ApiTokenQuery){
     ye {$ApiTokenPrompt = $true;break}
     yes {$ApiTokenPrompt = $true;break}
     Default { 
-        Write-host "Please run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/.`n"
+        Write-host -ForegroundColor Red "`nPlease run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token`n"
         Exit
     }
 }
@@ -84,7 +84,7 @@ if ($ApiTokenPrompt -eq $true){
         }
         Write-Host -ForegroundColor Green "`n#######################################################################################`n"
         Write-host -ForegroundColor Yellow "Please note that you'll need the following API permissions to use this script: `n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
-        Write-host -ForegroundColor Yellow "Please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/ to create an API token.`n"
+        Write-host -ForegroundColor Yellow "Please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token to create an API token.`n"
         $ApiTokenInput = Read-Host -prompt "Please enter your API token here" 
         if (!([string]::IsNullOrEmpty($ApiTokenInput))){
             Write-host "`nChecking if API token is valid.`n"
@@ -106,11 +106,7 @@ if ($ApiTokenPrompt -eq $true){
             }
         }
     }
-}else{
-    Write-host -ForegroundColor Red "`nPlease run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token`n"
-    Exit
 }
-
 #endregion GetApiTokenInput
 
 Write-Host -ForegroundColor Green "#######################################################################################`n"

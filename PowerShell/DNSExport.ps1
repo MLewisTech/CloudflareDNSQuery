@@ -1,13 +1,18 @@
 #region InitialSetup
 
-#Set console colours
+#This region is to do inital setup of the console/script.
+
+#Get original console colours
 
 $CurrentPSBackgroundColour = $Host.UI.RawUI.BackgroundColor
 $CurrentPSForegroundColour = $Host.UI.RawUI.ForegroundColor
 
+#Set console colours for session
+
 $Host.UI.RawUI.BackgroundColor = 'Black'
 $Host.UI.RawUI.ForegroundColor = 'White'
 
+#Clear console
 Clear-Host
 
 #endregion InitalSetup
@@ -16,13 +21,15 @@ Clear-Host
 
 #This section is for declaring all the variables used in the script.
 
-#Set the Base URI to https://api.cloudflare.com/client/v4/zones/ as this will then be used during the API calls to get the zone ID and then get the associated records
+#Set the Base URI to https://api.cloudflare.com/client/v4/zones/ as this will then be used later on during the script
 
 $BaseURI = "https://api.cloudflare.com/client/v4/zones/"
 
 #endregion APIGlobalVariables
 
 #region License
+
+#MIT license.
 
 write-host -ForegroundColor Green "`n#######################################################################################"
 
@@ -52,6 +59,8 @@ Write-Host -ForegroundColor Green "#############################################
 
 #endregion License
 
+#Token requirements
+
 Write-Host "This script is for getting all DNS records for domains in Cloudflare via the API.`n`nFor this script to run, you'll to create an API token in Cloudflare that has at least the following:`n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
 Write-Host -ForegroundColor Green "#######################################################################################`n"
 Pause
@@ -63,6 +72,7 @@ write-host ""
 #Check if API token is to hand
 $ApiTokenQuery = Read-Host "Do you have an API token?`n[Y] Yes [N] No (Default)"
 
+#Handling of API token input
 switch ($ApiTokenQuery){
     y {$ApiTokenPrompt = $true;break}
     ye {$ApiTokenPrompt = $true;break}
@@ -73,24 +83,45 @@ switch ($ApiTokenQuery){
     }
 }
 
-#Check response of $ApiTokenQuery and proceed if yes.
+#Check response of $ApiTokenQuery and proceed if $ApiTokenPrompt -eq $true
 if ($ApiTokenPrompt -eq $true){
 
+    #Set $ApiTokenInput to $null for initial token prompt
     $ApiTokenInput = $null
+
+    #Set $ApiCount to 0. This is used for tracking amount of API requests within a set interval (normally 1200 requests with a 5 minute period) to avoid hitting the API limits Cloudflare have. See https://developers.cloudflare.com/fundamentals/api/reference/limits/ for more information.
     $ApiCount = 0
+
+    #Sert initial $TimeStamp for API limit
     $TimeStamp = Get-Date
+
+    #Whilst $ApiTokenInput -eq $null, keep looping through to prompt user for the API token.
     while([string]::IsNullOrEmpty($ApiTokenInput)){
+
+        #Check for API limit and exit if 1200 requests have been made within 5 minutes.
         if (($ApiCount -ge 1200)-and ($TimeStamp -lt $TimeStamp.AddMinutes(5))){
             write-host -ForegroundColor Red "[!] Warning. An incorrect API token has been entered 1200 times within a 5 minute period.`n`nPlease run the script when you have an API token ready to go.`n`nIf you need help with generating an API token, please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token/."
             Exit
         }
+
+        #Requirements for API token.
         Write-Host -ForegroundColor Green "`n#######################################################################################`n"
         Write-host -ForegroundColor Yellow "Please note that you'll need the following API permissions to use this script: `n`n1) Permissions - Zone.DNS.Read`n2) Zone Resources - Include all from an account`n"
         Write-host -ForegroundColor Yellow "Please follow the Cloudflare docs at https://developers.cloudflare.com/fundamentals/api/get-started/create-token to create an API token.`n"
+
+        #Prompt user for API token.
         $ApiTokenInput = Read-Host -prompt "Please enter your API token here" 
+
+        #Check if $ApiTokenInput is not $null.
         if (!([string]::IsNullOrEmpty($ApiTokenInput))){
             Write-host "`nChecking if API token is valid.`n"
+
+            #Set headers for API requests. Will be used later in script as well.
             $Headers = @{"Authorization" = "Bearer $ApiTokenInput"}
+
+            #Try invoke-webrequest with $BaseURI, GET method and $Headers then get response code as $StatusCode.
+            #If $StatusCode -eq 200, then API token is valid. Otheriwse, the API token is invalid and the loop resets with $ApiTokenInput being reset to $null.
+            #Each attempt (successful or not) increments the $ApiCount counter ($ApiCount++).
             try{
                 $TestHeaders = Invoke-Webrequest -Uri $BaseURI -Method Get -Headers $Headers
                 $StatusCode = $TestHeaders.StatusCode
@@ -115,6 +146,9 @@ Write-Host -ForegroundColor Green "#############################################
 
 #region GetZonesInput
 
+#This region is for getting the zone(s) in Cloudflare to get the DNS records for.
+#First, prompt user if they want to get all zones (default) or specific zones.
+
 $ZoneQuery = Read-host "By default, this script will get all records for all domains. Do you want to get the records for specific domains?`n[Y] Yes [N] No (Default)"
 Write-host ""
 switch ($ZoneQuery){
@@ -124,22 +158,31 @@ switch ($ZoneQuery){
     Default {Write-Host "All records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
 }
 
+#Error handing if nothing has been entered.
 if ($Domains -eq ""){
     Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
     $AllDomains = $true
 }
 
+#Check how the user wants to input the zones into the script (either via .csv/.txt file or manaully by typing them in)
 if ($AllDomains -eq $false){
+    
+    #Check for .csv or .txt input.
+    #If no file to use for the zones, then default to manually asking user for input of comma separated domains.
     switch ($DomainInputQuery = Read-host "Do you have a .csv or .txt file containing the domains you want to export records for? `n[Y] Yes [N] No (Default)"){
         y {$ImportFromFile = $true;break}
         ye {$ImportFromFile = $true;break}
         yes {$ImportFromFile = $true;break}
         Default {
+            #Enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net), then check to see if the list is empty.
+            #If the list is empty, then keep looping through to prompt user to enter domains.
+            #No API limit will be hit here, so loop can go on forever (may need to add handling to prevent this if needed but ctrl + c will exit it and stop the script).
             $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
             while([string]::IsNullOrEmpty($ManualDomainInput)){
                 Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`nPlease try again."
                 $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
             }
+            #Check if $ManualDomainInput is empty and if not, then split the domains into an array (split by a comma ",").
             if (!([string]::IsNullOrEmpty($ManualDomainInput))){
                 $AllDomains = $false
                 $DomainArray = $ManualDomainInput.Split(',')
@@ -148,31 +191,47 @@ if ($AllDomains -eq $false){
     }
 }
 
+#Handling for if import from file was selected.
+#Import from file will open File Explore window to allow user to browse to the file.
 if($ImportFromFile -eq $true){
+
+    #Open File Explorer file picker with filter set to .txt or .csv files.
     Add-Type -AssemblyName System.Windows.Forms
     $FileInputPicker = New-Object System.Windows.Forms.OpenFileDialog -Property @{
         InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
         Filter = 'Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv'
     }
     $null = $FileInputPicker.ShowDialog()
-    $ChoosenFile = $FileInputPicker.filename
+
+    #Save file from File Explorer picker to variable name.
+    $ChosenFile = $FileInputPicker.filename
+
+    #Try and check if the file ends with .csv or .txt and save contents to $DomainArray.
+    #Otherwise, catch handling and fall back to manual file entry loop. 
     try{
-        if ($ChoosenFile.EndsWith(".csv")){
-            $DomainArray = (Import-Csv -path $ChoosenFile) | Select-Object -ExpandProperty *
+        if ($ChosenFile.EndsWith(".csv")){
+            $DomainArray = (Import-Csv -path $ChosenFile) | Select-Object -ExpandProperty *
             $AllDomains = $false
-            Write-host "`nThe input file to be used is $($ChoosenFile).`n"
+            Write-host "`nThe input file to be used is $($ChosenFile).`n"
         }
-        if($ChoosenFile.EndsWith(".txt")){
-            $DomainArray = Get-Content -path $ChoosenFile
+        if($ChosenFile.EndsWith(".txt")){
+            $DomainArray = Get-Content -path $ChosenFile
             $AllDomains = $false
-            Write-host "`nThe input file to be used is $($ChoosenFile).`n"
+            Write-host "`nThe input file to be used is $($ChosenFile).`n"
         }   
     }
     catch{
         Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
-        $Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
-        $AllDomains = $false
-        $DomainArray = $Domains.Split(',')
+        $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+        while([string]::IsNullOrEmpty($ManualDomainInput)){
+            Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`nPlease try again."
+            $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+        }
+        #Check if $ManualDomainInput is empty and if not, then split the domains into an array (split by a comma ",").
+        if (!([string]::IsNullOrEmpty($ManualDomainInput))){
+            $AllDomains = $false
+            $DomainArray = $ManualDomainInput.Split(',')
+        }
     }
 }
 #endregion GetZonesInput

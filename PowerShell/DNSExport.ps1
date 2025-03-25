@@ -63,7 +63,6 @@ $ApiTokenQuery = Read-Host "Do you have an API token? [Y] Yes [N] No"
 
 #Check response of $ApiTokenQuery and proceed if yes.
 if (($ApiTokenQuery -like "y") -or ($ApiTokenQuery -like "Yes")){
-    Write-host ""
     $ApiTokenInput = $null
     $ApiCount = 0
     $TimeStamp = Get-Date
@@ -113,7 +112,7 @@ switch ($ZoneQuery){
     y {$AllDomains = $false;break}
     ye {$AllDomains = $false;break}
     yes {$AllDomains = $false;break}
-    Default {Write-Host "All records for all domains will be retrieved. Proceeding.`n";$AllDomains = $true;break}
+    Default {Write-Host "All records for all domains will be retrieved. Proceeding.";$AllDomains = $true;break}
 }
 
 if ($Domains -eq ""){
@@ -126,7 +125,7 @@ if ($AllDomains -eq $false){
         y {$ImportFromFile = $true;break}
         ye {$ImportFromFile = $true;break}
         yes {$ImportFromFile = $true;break}
-        Default {$Domains = Read-Host "`nPlease enter a comma separated list of domains here(E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
+        Default {$Domains = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)";$AllDomains = $false;$DomainArray = $Domains.Split(',');break}
     }
 }
 
@@ -157,7 +156,6 @@ if($ImportFromFile -eq $true){
         $DomainArray = $Domains.Split(',')
     }
 }
-
 if ($DomainArray -eq ""){
     Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`n`Defaulting to getting all domains."
     $AllDomains = $true
@@ -165,7 +163,7 @@ if ($DomainArray -eq ""){
 
 #endregion GetZonesInput
 
-Write-Host -ForegroundColor Green "#######################################################################################`n"
+Write-Host -ForegroundColor Green "`n#######################################################################################`n"
 
 #region GetOutputFile
 
@@ -294,7 +292,7 @@ $FullOutputPath = $OutputDirectory+"\"+$OutputFile
 
 #endregion GetOutputFile
 
-Write-Host -ForegroundColor Green "#######################################################################################`n"
+Write-Host -ForegroundColor Green "`n#######################################################################################`n"
 
 #endregion GetVariables
 
@@ -302,7 +300,7 @@ Write-Host -ForegroundColor Green "#############################################
 
 #Get total amount of zones if getting all domains.
 
-Write-host "Starting export of DNS records.`n"
+Write-host -ForegroundColor Blue "Starting export of DNS records.`n"
 $TimeStamp = Get-Date
 
 If ($AllDomains -eq $true){
@@ -327,7 +325,7 @@ If ($AllDomains -eq $true){
                 $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
                 $ApiCount++
                 if($Records.result_info.total_count -eq 0){
-                    Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+                    Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
                 }
                 else{
                     foreach($Record in $Records.result){
@@ -362,7 +360,7 @@ If ($AllDomains -eq $true){
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             $ApiCount++
             if($Records.result_info.total_count -eq 0){
-                Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+                Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
             }
             else{
                 foreach($Record in $Records.result){
@@ -402,7 +400,7 @@ If ($AllDomains -eq $true){
             $Records = Invoke-RestMethod -Uri $RecordsURI -Method Get -Headers $Headers
             $ApiCount++
             if($Records.result_info.total_count -eq 0){
-                Write-host -ForegroundColor Yellow "No records exist for $($ZoneName).`n"
+                Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
             }
             else{
                 foreach($Record in $Records.result){
@@ -429,8 +427,8 @@ If ($AllDomains -eq $true){
 #endregion ExportDNSRecords
 
 #region FinalBits
-
-Write-host "`nDNS records have been exported to $($FullOutputPath)."
+Write-Host -ForegroundColor Green "#######################################################################################`n"
+Write-host "DNS records have been exported to $($FullOutputPath)."
 $OpenFileNowQuery = Read-Host "`nDo you want to open the file now?`n`n[Y] Yes [N] No (Default)"
 
 switch ($OpenFileNowQuery){
@@ -440,9 +438,9 @@ switch ($OpenFileNowQuery){
     Default {break}
 }
 
-Write-host "Thank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
-$CurrentPSBackgroundColour
-$CurrentPSForegroundColour
+Write-host "`nThank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
+$Host.UI.RawUI.BackgroundColor = $CurrentPSBackgroundColour
+$Host.UI.RawUI.ForegroundColor = $CurrentPSForegroundColour
 Exit
 
 #endregion FinalBits

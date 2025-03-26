@@ -322,7 +322,11 @@ switch ($OutputFileQuery){
     Default {Write-host  -ForegroundColor Red "`n[!] No option selected or invalid option entered.`n`nSetting default directory to be $($DefaultOutputDirectory).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
 }
 
+
 # File and directory checks and handling
+
+#Get new file/path.
+
 
 # Get new file/directory if changing file/directory is selected.
 # Script assumes that if the change of file/directory ends in a backslash ("\"), then it is a directory.

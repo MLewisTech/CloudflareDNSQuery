@@ -203,8 +203,6 @@ switch ($OutputFileQuery){
 
 #File and path checks and handling
 
-#Future - May look at moving the below to a function to call from the above switch block for each statement
-
 #Get new file/path.
 
 if ($ChangeOutput -eq $true){

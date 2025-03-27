@@ -254,22 +254,34 @@ if ($AllDomains -eq $false){
 
 # Handling for if import from file was selected.
 # Import from file will open File Explore window to allow user to browse to the file.
-
 if($ImportFromFile -eq $true){
 
     # Open File Explorer file picker with filter set to .txt or .csv files.
     Add-Type -AssemblyName System.Windows.Forms
     $FileInputPicker = New-Object System.Windows.Forms.OpenFileDialog -Property @{
         InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
-        Filter = 'Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv'
+        Filter = 'CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt'
     }
     $null = $FileInputPicker.ShowDialog()
 
     # Save file from File Explorer picker to variable name.
     $ChosenFile = $FileInputPicker.filename
 
-    #Check if no option was selected and if so, then default to manual domain entry.
-    if ([string]::IsNullOrEmpty($ChosenFile)){
+    # Try and check if the file ends with .csv or .txt and save contents to $DomainArray.
+    # Otherwise, catch fall back to manual file entry loop. 
+    try{
+        if ($ChosenFile.EndsWith(".csv")){
+            $DomainArray = (Import-Csv -path $ChosenFile) | Select-Object -ExpandProperty *
+            $AllDomains = $false
+            Write-host "`nThe input file to be used is $($ChosenFile).`n"
+        }
+        if($ChosenFile.EndsWith(".txt")){
+            $DomainArray = Get-Content -path $ChosenFile
+            $AllDomains = $false
+            Write-host "`nThe input file to be used is $($ChosenFile).`n"
+        }   
+    }
+    catch{
         Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
         $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
         while([string]::IsNullOrEmpty($ManualDomainInput)){
@@ -281,37 +293,8 @@ if($ImportFromFile -eq $true){
             $AllDomains = $false
             $DomainArray = $ManualDomainInput.Split(',')
         }
-    }else{
-        # Try and check if the file ends with .csv or .txt and save contents to $DomainArray.
-        # Otherwise, catch fall back to manual file entry loop. 
-        try{
-            if ($ChosenFile.EndsWith(".csv")){
-                $DomainArray = (Import-Csv -path $ChosenFile) | Select-Object -ExpandProperty *
-                $AllDomains = $false
-                Write-host "`nThe input file to be used is $($ChosenFile).`n"
-            }
-            if($ChosenFile.EndsWith(".txt")){
-                $DomainArray = Get-Content -path $ChosenFile
-                $AllDomains = $false
-                Write-host "`nThe input file to be used is $($ChosenFile).`n"
-            }   
-        }
-        catch{
-            Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
-            $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
-            while([string]::IsNullOrEmpty($ManualDomainInput)){
-                Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`nPlease try again."
-                $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
-            }
-            # Check if $ManualDomainInput is empty and if not, then split the domains into an array (split by a comma ",").
-            if (!([string]::IsNullOrEmpty($ManualDomainInput))){
-                $AllDomains = $false
-                $DomainArray = $ManualDomainInput.Split(',')
-            }
-        }
     }
 }
-
 # endregion GetZonesInput
 
 Write-Host -ForegroundColor Green "`n#######################################################################################`n"
@@ -339,7 +322,11 @@ switch ($OutputFileQuery){
     Default {Write-host  -ForegroundColor Red "`n[!] No option selected or invalid option entered.`n`nSetting default directory to be $($DefaultOutputDirectory).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
 }
 
+
 # File and directory checks and handling
+
+#Get new file/path.
+
 
 # Get new file/directory if changing file/directory is selected.
 # Script assumes that if the change of file/directory ends in a backslash ("\"), then it is a directory.
@@ -493,7 +480,7 @@ If ($AllDomains -eq $true){
                 }
                 # Get the $ZoneName of the Zone being queried.
                 $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
-                Write-host "Getting DNS records for $ZoneName.`n"
+                Write-host "Getting DNS records for $ZoneName"
                 # Set API URI to be $BaseURI/$ZoneID/dns_records.
                 # This uses the $ZoneID from earlier on.
                 $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
@@ -503,7 +490,7 @@ If ($AllDomains -eq $true){
                 $ApiCount++
                 # Check if $Records has any data and if not, then raise message to console window, then continue looping through other zones.
                 if($Records.result_info.total_count -eq 0){
-                    Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
+                    Write-host -ForegroundColor Red "No records exist for $($ZoneName)"
                 }
                 # If there are DNS records, then output the required records into a pscustomobject.
                 # This is used for the .csv and outputting the data to the correct headers.
@@ -543,7 +530,7 @@ If ($AllDomains -eq $true){
             }
             # Get the $ZoneName of the Zone being queried.
             $ZoneName = $ZoneData.result | Where-Object id -eq $ID | Select-Object name -ExpandProperty name
-            Write-host "Getting DNS records for $ZoneName.`n"
+            Write-host "Getting DNS records for $ZoneName"
             # Set API URI to be $BaseURI/$ZoneID/dns_records.
             # This uses the $ZoneID from earlier on.
             $RecordsURI = "$($BaseURI)$($ID)/dns_records/"
@@ -553,7 +540,7 @@ If ($AllDomains -eq $true){
             $ApiCount++
             # Check if $Records has any data and if not, then raise message to console window, then continue looping through other zones.
             if($Records.result_info.total_count -eq 0){
-                Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
+                Write-host -ForegroundColor Red "No records exist for $($ZoneName)"
             }
             # If there are DNS records, then output the required records into a pscustomobject.
             # This is used for the .csv and outputting the data to the correct headers.
@@ -602,7 +589,7 @@ If ($AllDomains -eq $true){
         # If the domain is valid, then proceed and get DNS records.
         if(($ZoneName.Split(".") | Select-Object -Last 1) -in $TLDsNoHeaders){   
             # Set URI for querying $ZoneName and store in $ZoneNameQueryURI.       
-            $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName.`n"
+            $ZoneNameQueryURI = $BaseURI+"?name=$ZoneName"
             Write-host "Getting DNS records for $($ZoneName)"
             # Run API request against $ZoneNameQueryURI and get the ID to use to export the DNS records.
             $ZoneID = (Invoke-RestMethod -Uri $ZoneNameQueryURI -Method Get -Headers $Headers).result.id
@@ -616,7 +603,7 @@ If ($AllDomains -eq $true){
             $ApiCount++
             # Check if $Records has any data and if not, then raise message to console window, then continue looping through other zones.
             if($Records.result_info.total_count -eq 0){
-                Write-host -ForegroundColor Red "No records exist for $($ZoneName).`n"
+                Write-host -ForegroundColor Red "No records exist for $($ZoneName)"
             }
             # If there are DNS records, then output the required records into a pscustomobject.
             # This is used for the .csv and outputting the data to the correct headers.

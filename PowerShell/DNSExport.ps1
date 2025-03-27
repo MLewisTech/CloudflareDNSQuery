@@ -254,6 +254,7 @@ if ($AllDomains -eq $false){
 
 # Handling for if import from file was selected.
 # Import from file will open File Explore window to allow user to browse to the file.
+
 if($ImportFromFile -eq $true){
 
     # Open File Explorer file picker with filter set to .txt or .csv files.
@@ -267,21 +268,8 @@ if($ImportFromFile -eq $true){
     # Save file from File Explorer picker to variable name.
     $ChosenFile = $FileInputPicker.filename
 
-    # Try and check if the file ends with .csv or .txt and save contents to $DomainArray.
-    # Otherwise, catch fall back to manual file entry loop. 
-    try{
-        if ($ChosenFile.EndsWith(".csv")){
-            $DomainArray = (Import-Csv -path $ChosenFile) | Select-Object -ExpandProperty *
-            $AllDomains = $false
-            Write-host "`nThe input file to be used is $($ChosenFile).`n"
-        }
-        if($ChosenFile.EndsWith(".txt")){
-            $DomainArray = Get-Content -path $ChosenFile
-            $AllDomains = $false
-            Write-host "`nThe input file to be used is $($ChosenFile).`n"
-        }   
-    }
-    catch{
+    #Check if no option was selected and if so, then default to manual domain entry.
+    if ([string]::IsNullOrEmpty($ChosenFile)){
         Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
         $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
         while([string]::IsNullOrEmpty($ManualDomainInput)){
@@ -293,8 +281,37 @@ if($ImportFromFile -eq $true){
             $AllDomains = $false
             $DomainArray = $ManualDomainInput.Split(',')
         }
+    }else{
+        # Try and check if the file ends with .csv or .txt and save contents to $DomainArray.
+        # Otherwise, catch fall back to manual file entry loop. 
+        try{
+            if ($ChosenFile.EndsWith(".csv")){
+                $DomainArray = (Import-Csv -path $ChosenFile) | Select-Object -ExpandProperty *
+                $AllDomains = $false
+                Write-host "`nThe input file to be used is $($ChosenFile).`n"
+            }
+            if($ChosenFile.EndsWith(".txt")){
+                $DomainArray = Get-Content -path $ChosenFile
+                $AllDomains = $false
+                Write-host "`nThe input file to be used is $($ChosenFile).`n"
+            }   
+        }
+        catch{
+            Write-host -ForegroundColor Red "`nNo file selected/invalid file type selected. Defaulting to manual entry." 
+            $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+            while([string]::IsNullOrEmpty($ManualDomainInput)){
+                Write-host -ForegroundColor Red "`n[!] No domains have been entered.`n`nPlease try again."
+                $ManualDomainInput = Read-Host "`nPlease enter a comma separated list of domains here (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net)"
+            }
+            # Check if $ManualDomainInput is empty and if not, then split the domains into an array (split by a comma ",").
+            if (!([string]::IsNullOrEmpty($ManualDomainInput))){
+                $AllDomains = $false
+                $DomainArray = $ManualDomainInput.Split(',')
+            }
+        }
     }
 }
+
 # endregion GetZonesInput
 
 Write-Host -ForegroundColor Green "`n#######################################################################################`n"
@@ -322,11 +339,7 @@ switch ($OutputFileQuery){
     Default {Write-host  -ForegroundColor Red "`n[!] No option selected or invalid option entered.`n`nSetting default directory to be $($DefaultOutputDirectory).`n`nSetting default output file name to be $($DefaultOutputFile)."; $ChangeOutput = $false;break}
 }
 
-
 # File and directory checks and handling
-
-#Get new file/path.
-
 
 # Get new file/directory if changing file/directory is selected.
 # Script assumes that if the change of file/directory ends in a backslash ("\"), then it is a directory.

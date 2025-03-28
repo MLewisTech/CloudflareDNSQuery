@@ -1,5 +1,3 @@
-<h1><strong>THIS IS A WORK IN PROGRESS<strong></h1>
-
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 This is for creating a PowerShell API call to Cloudflare to get a list of all DNS zones and entries for using in backup or for review.

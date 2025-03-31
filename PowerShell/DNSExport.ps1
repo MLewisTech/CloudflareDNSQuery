@@ -26,8 +26,6 @@
 
 # This script will run in both PowerShell 5.1 and PowerShell 7.
 
-# This script had zero (0) AI involvement and was done the old fashioned way.
-
 # This script is for either getting the DNS records for specific domains or for getting all DNS records from all domains from a Cloudflare account via the API.
 # Cloudflare Documentation for generating API tokens can be found here: https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
 # Required Cloudflare API permissions to use this script:

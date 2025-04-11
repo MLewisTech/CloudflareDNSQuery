@@ -20,9 +20,9 @@ To get started, please see
 ## Script Defaults 
 
 1. If anything requires user input, then the script will always default to "No".
-2. The script will save the .csv output file to the location the scripts runs from but this can be changed if needed.
+1. The script will save the .csv output file to the location the scripts runs from but this can be changed if needed.
     1. E.g. If the script is ran from your downloads folder, then it'll save the .csv file to your downloads folder.
-3. The default output file will include the date and time the script ran but this can be changed if needed.
+1. The default output file will include the date and time the script ran but this can be changed if needed.
 
 ## Instructions
 
@@ -58,8 +58,14 @@ To get started, please see
     1. If you want to get records for all domains either just press `enter` or enter `no`.
         1. Proceed to step 7.
     1. If you want to get the records for specific domains, then enter `yes`.
-        1. 
-1. 
+        1. You then be prompted for if you have a .csv or .txt file containing the domains that you want to get records for.
+            1. Enter `yes` and a File Explorer window will open to allow you to browse and select the .csv or .txt file containing the domains.
+            1. Either pressing `enter` or entering `no` will allow you to input a comma separated list of domains into the console window (E.g. example.co.uk,example.com,example.net,contoso.com,contoso.net).
+1. You'll then be prompted if you want to change the output directory/file.
+    1. If you want to change the either the output directory, the outputfile or both, then enter `yes`.
+        1. Enter the new directory path and/or the new file name to change this.
+    1. Otherwise, either pressing `enter` or entering `no` will use the default output directory (the directory where the script is ran from) and the default output file.
+
 
 ## Troubleshooting
 1. Does the API token have the correct permissions?

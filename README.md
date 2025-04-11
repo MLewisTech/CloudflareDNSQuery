@@ -65,6 +65,11 @@ To get started, please see
     1. If you want to change the either the output directory, the outputfile or both, then enter `yes`.
         1. Enter the new directory path and/or the new file name to change this.
     1. Otherwise, either pressing `enter` or entering `no` will use the default output directory (the directory where the script is ran from) and the default output file.
+1. The script will then run through the list of selected domains and get the DNS records records. These DNS records will then be output into a .csv file.
+    1. This section of the script also handles the Cloudflare API rate limiting to ensure that the API limit isn't hit (1200 requests within a 5 minute period).
+1. Once the script has finished, you can then either open .csv file that was generated or you can exit the script.
+    1. To open the generated .csv file, enter `yes`.
+    1. To exit the script, then either press `enter` or enter `no`.
 
 
 ## Troubleshooting

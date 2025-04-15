@@ -38,8 +38,6 @@ To get started, please see
         >
         >If you get similar to above, then you'll need to change the execution policy of your PowerShell to allow the script to run.
 
-        <br>
-
         >[!CAUTION]
         >**Changing the PowerShell execution policy can reduce the security of your machine and could allow malicious code to run.**
         >

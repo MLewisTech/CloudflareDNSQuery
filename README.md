@@ -25,13 +25,6 @@ To get started, please see
 1. The default output file will include the date and time the script ran but this can be changed if needed.
 
 ## Instructions
-
-1. Download the DNSExport.ps1 file.
-1. Open PowerShell or Windows Terminal.
-1. To run the script, do one of the following:
-    1. Change the directory to where the DNSExport.ps1 file is. You can do this with the `cd` command.
-    1. Enter the full path to the file, including the file name. E.g. `C:\Users\MLewisTech\Downloads\DNSExport.ps1`. 
-    <br>
     
 >[!NOTE]
 > It is possible that your PowerShell blocks the execution of the script. If so, then you may get an error from PowerShell that says something like "File C:\Users\MLewisTech\Downloads\DNSExport.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170".
@@ -48,6 +41,12 @@ To get started, please see
 >**Only change the execution policy if you know what you are doing and accept the risks associated with changing it.**
 
 <br>
+
+1. Download the DNSExport.ps1 file.
+1. Open PowerShell or Windows Terminal.
+1. To run the script, do one of the following:
+    1. Change the directory to where the DNSExport.ps1 file is. You can do this with the `cd` command.
+    1. Enter the full path to the file, including the file name. E.g. `C:\Users\MLewisTech\Downloads\DNSExport.ps1`. 
 
 1. Once the script loads, then press enter to continue.
 1. You will then be prompted for if you have a Cloudflare API token.

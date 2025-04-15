@@ -33,19 +33,19 @@ To get started, please see
     1. Enter the full path to the file, including the file name. E.g. `C:\Users\MLewisTech\Downloads\DNSExport.ps1`. 
     <br>
     
-    >[!NOTE]
-    > It is possible that your PowerShell blocks the execution of the script. If so, then you may get an error from PowerShell that says something like "File C:\Users\MLewisTech\Downloads\DNSExport.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170".
-    >
-    >If you get similar to above, then you'll need to change the execution policy of your PowerShell to allow the script to run.
-    
-    <br>
-    
-    >[!CAUTION]
-    >**Changing the PowerShell execution policy can reduce the security of your machine and could allow malicious code to run.**
-    >
-    >**You should always review any code and scripts found from the internet before downloading and running (including this script).**
-    >
-    >**Only change the execution policy if you know what you are doing and accept the risks associated with changing it.**
+  >[!NOTE]
+  > It is possible that your PowerShell blocks the execution of the script. If so, then you may get an error from PowerShell that says something like "File C:\Users\MLewisTech\Downloads\DNSExport.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170".
+  >
+  >If you get similar to above, then you'll need to change the execution policy of your PowerShell to allow the script to run.
+
+  <br>
+
+  >[!CAUTION]
+  >**Changing the PowerShell execution policy can reduce the security of your machine and could allow malicious code to run.**
+  >
+  >**You should always review any code and scripts found from the internet before downloading and running (including this script).**
+  >
+  >**Only change the execution policy if you know what you are doing and accept the risks associated with changing it.**
 
 <br>
 

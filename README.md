@@ -25,6 +25,14 @@ To get started, please see
 1. The default output file will include the date and time the script ran but this can be changed if needed.
 
 ## Instructions
+
+### Generate API Token
+
+1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com).
+    1. Log in if prompted.
+1. 
+
+### Running the Script
     
 >[!NOTE]
 > It is possible that your PowerShell blocks the execution of the script. If so, then you may get an error from PowerShell that says something like "File C:\Users\MLewisTech\Downloads\DNSExport.ps1 cannot be loaded because running scripts is disabled on this system. For more information, see about_Execution_Policies at https:/go.microsoft.com/fwlink/?LinkID=135170".

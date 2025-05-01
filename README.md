@@ -14,7 +14,7 @@ Required Cloudflare API permissions to use this script:
 1. Permissions - Zone.DNS.Read
 2. Zone Resources - Include all from an account
 
-To get started, please see
+To get started with the Cloudflare API, please see
 [Cloudflare's documentation on creating the API token.](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/)
 
 ## Script Defaults 
@@ -30,7 +30,27 @@ To get started, please see
 
 1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com).
     1. Log in if prompted.
-1. 
+1. Go to "Manage Account" At the bottom of the left menu bar and select "Account API Tokens".
+![alt text](image.png)
+1. Press "Create Token" to generate an API token.
+![alt text](image-1.png)
+1. Click on "Get Started" on under "Create Custom Token" section at the bottom of the page.
+![alt text](image-2.png)
+1. Fill in the fields on the next page (anything in bold is required):
+    1. **Required**: "Token name"
+    1. **Required**: "Permissions"
+        1. Zone.DNS.Read
+        1. Zone Resources - Include all from an account
+    1. Optional: "Client IP Address Filtering"
+    1. Optional but highly recommended: "TTL"
+        1. Suggest setting the API token to expire after a period of time to help ensure ensure security of your domains and Cloudflare account.
+![alt text](image-4.png)
+
+1. Press "Continue to summary" once you are happy with the options for the API token.
+1. Review the options and make any adjustments as needed.
+    1. If you are happy with the API token options, then press "Create Token".
+![alt text](image-3.png)
+1. You'll then get an API token created which you can then use on the next section for running the script.
 
 ### Running the Script
     

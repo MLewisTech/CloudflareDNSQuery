@@ -49,8 +49,7 @@ To get started with the Cloudflare API, please see
 1. Press "Continue to summary" once you are happy with the options for the API token.
 1. Review the options and make any adjustments as needed.
     1. If you are happy with the API token options, then press "Create Token".
-![alt text](./Images/image-3.png)
-<br>
+![alt text](./Images/image-3.png)  
 1. You'll then get an API token created which you can then use on the next section for running the script.
 ![alt text](./Images/image-6.png)
 

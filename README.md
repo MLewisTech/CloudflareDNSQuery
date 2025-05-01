@@ -82,6 +82,7 @@ ___
 1. Once the script loads, then press enter to continue.
 1. You will then be prompted for if you have a Cloudflare API token.
     1. If so, then enter `yes` and enter the token when prompted.
+        1. This should be the API token you generated earlier.
         1. Press `enter` when done.
     1. If you don't have an API token, then please follow [Cloudflare's Guide](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) to create one.
 1. You'll then be prompted if you want to get the DNS records for all domains (default option) or for specific domains.

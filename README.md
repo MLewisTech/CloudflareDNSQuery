@@ -30,8 +30,7 @@ To get started with the Cloudflare API, please see
 
 1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com).
     1. Log in if prompted.
-1. Go to "Manage Account" At the bottom of the left menu bar and select "Account API Tokens".<br/>
-![alt text](./Images/image.png)
+1. Go to "Manage Account" At the bottom of the left menu bar and select "Account API Tokens".
 1. Press "Create Token" to generate an API token.
 ![alt text](./Images/image-1.png)
 1. Click on "Get Started" on under "Create Custom Token" section at the bottom of the page.
@@ -48,7 +47,6 @@ To get started with the Cloudflare API, please see
 1. Press "Continue to summary" once you are happy with the options for the API token.
 1. Review the options and make any adjustments as needed.
     1. If you are happy with the API token options, then press "Create Token".
-![alt text](./Images/image-3.png)
 1. You'll then get an API token created which you can then use on the next section for running the script.
 ![alt text](./Images/image-6.png)
 ___

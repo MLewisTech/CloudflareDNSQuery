@@ -503,7 +503,7 @@ If ($AllDomains -eq $true){
                         Priority = $Record.priority
                         Proxiable = $Record.proxiable
                         Proxied = $Record.proxied
-                        TTL = $Record.ttl
+                        TTL = if ($Record.ttl -eq "1"){"3600"}else{$Record.ttl}
                         Comment = $Record.comment
                         }
                         # Output records to .csv file, appending records to file rather than overwriting.

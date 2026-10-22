@@ -348,10 +348,13 @@ try{
         # If using a different directory, then check to see if $DesiredOutputDestination is path only or path and file.
         # If endes with "\" then assume directory.
         if ($DesiredOutputDestination.EndsWith("\")){
-            Write-Host "It looks like you want to use a new path for the output file.`n`nChecking to see if the path exists and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
+            Write-Host "It looks like you want to use a different directory for the output file.`n`nChecking to see if the path exists and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
+            # Remove trailing backslash
+            $DesiredOutputDestination = $DesiredOutputDestination -replace ".$"
+
             # Check if directory already exists and attempt to create it not. 
             # Falls back to using working directory if unable to create new directory.
-            if (!(test-path $DesiredOutputDestination)){
+            if (!(test-path $DesiredOutputDestination -PathType Container)){
                 try {
                     New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
                 }

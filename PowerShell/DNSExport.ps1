@@ -346,31 +346,34 @@ try{
     }
     else{
         # If using a different directory, then check to see if $DesiredOutputDestination is path only or path and file.
-        # If endes with "\" then assume directory.
+        # If ends with "\" then assume directory.
         if ($DesiredOutputDestination.EndsWith("\")){
             Write-Host "It looks like you want to use a different directory for the output file.`n`nChecking to see if the path exists and attempting to create it if not.`nIf the script is unable to create the path, then it will fall back to the working directory."
             # Remove trailing backslash
-            $DesiredOutputDestination = $DesiredOutputDestination -replace ".$"
-
+            $DesiredOutputDirectory = $DesiredOutputDestination
+            $DesiredOutputDirectory = $DesiredOutputDirectory.Substring(0,$DesiredOutputDirectory.Length-1)
             # Check if directory already exists and attempt to create it not. 
             # Falls back to using working directory if unable to create new directory.
-            if (!(test-path $DesiredOutputDestination -PathType Container)){
+            if (!(test-path $DesiredOutputDirectory -PathType Container)){
                 try {
-                    New-Item -ItemType Directory -Path $DesiredOutputDestination -Force | Out-Null
+                    New-Item -ItemType Directory -Path $DesiredOutputDirectory -Force | Out-Null
                 }
                 catch {
-                    mkdir -Path $DesiredOutputDestination -Force | Out-Null
+                    mkdir -Path $DesiredOutputDirectory -Force | Out-Null
                 }
-                if (Test-Path $DesiredOutputDestination){
-                    Write-host "Successfully created $($DesiredOutputDestination). Proceeding."
-                    $OutputDirectory = $DesiredOutputDestination
+                if (Test-Path $DesiredOutputDirectory){
+                    Write-host "Successfully created $($DesiredOutputDirectory). Proceeding."
+                    $OutputDirectory = $DesiredOutputDirectory
+                    $OutputFile = $DefaultOutputFile
                 }else{
-                    Write-Host -ForegroundColor Red "Failed to create $($DesiredOutputDestination). Defaulting to the working directory."
+                    Write-Host -ForegroundColor Red "Failed to create $($DesiredOutputDirectory). Using defaults."
                     $OutputDirectory = $WorkingDir
+                    $OutputFile = $DefaultOutputFile
                 }
             }else{
-                Write-host "$($DesiredOutputDestination) already exists. Proceeding."
-                $OutputDirectory = $DesiredOutputDestination
+                Write-host "$($DesiredOutputDirectory) already exists. Proceeding."
+                $OutputDirectory = $DesiredOutputDirectory
+                $OutputFile = $DefaultOutputFile
             }
         }
         # If $DesiredOutputDestination doesn't end with a "\", then assume file. 
@@ -650,7 +653,7 @@ switch ($OpenFileNowQuery){
     Default {break}
 }
 
-Write-host "`nThank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye`n"
+Write-host "`nThank you for using this script to export Cloudflare DNS records.`n`nHave a good day.`n`nGoodbye.`n"
 
 # Restore console back to original settings.
 
